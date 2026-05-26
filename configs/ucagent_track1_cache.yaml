@@ -121,3 +121,21 @@ stage:
       - "docs/bug_tracking.md"
       - "docs/ai_collaboration_report.md"
       - "docs/ucagent_output/bug_injection_stage.md"
+
+  - name: final_report_package
+    desc: "Final report packaging and submission readiness review through UCAgent"
+    task:
+      - "Inspect README.md, top.md, docs/ai_collaboration_report.md, docs/verification_plan.md, docs/coverage_report.md, docs/bug_tracking.md, docs/test_points.md, docs/ucagent_operation_plan.md, and docs/ucagent_output/."
+      - "Review README.md for submission readiness: ensure it clearly states dependencies (Picker, Python, pytest), run commands (run_smoke.sh, run_regression.sh, collect_coverage.sh), reproduce instructions (reproduce.sh), and the current verification status."
+      - "Review docs/ai_collaboration_report.md: ensure the AI-human collaboration log is complete, add a Prompt Strategy Review section if missing, and verify the manual-vs-AI decision records cover all five UCAgent stages."
+      - "Review docs/verification_plan.md: ensure Phase 5 current result is accurate and the overall plan reflects actual progress."
+      - "Run scripts/reproduce.sh from the workspace root to verify the full reproducibility entry still passes."
+      - "Run scripts/run_regression.sh to confirm the regression suite remains clean."
+      - "Create docs/ucagent_output/final_report_stage.md with: stage name, files reviewed/changed, commands run, exact results, submission checklist status, and any remaining risks."
+      - "Update top.md with any new output files created during this stage."
+      - "Call SetCurrentStageJournal with reviewed files, command results, and submission readiness assessment before calling Complete."
+    output_files:
+      - "docs/ucagent_output/final_report_stage.md"
+      - "docs/ai_collaboration_report.md"
+      - "README.md"
+      - "top.md"

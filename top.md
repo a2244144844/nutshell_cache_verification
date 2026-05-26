@@ -35,6 +35,7 @@ This file is the top-level map for the Markdown documents maintained for the Tra
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/crv_coverage_stage.md` | UCAgent CRV/coverage stage output. Records changed files, commands, exact pass/fail results, coverage summary, and remaining gaps. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/dirty_writeback_stage.md` | UCAgent dirty-writeback closure stage output. Records changed files, commands, exact pass/fail results, coverage delta, and remaining risks. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/bug_injection_stage.md` | UCAgent bug-injection stage output. Records changed files, intentional failure command, recovery command, clean regression result, and remaining risks. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/final_report_stage.md` | UCAgent final report packaging stage output. Records reviewed files, commands run, exact results, submission checklist status, and remaining risks. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/scripts/run_ucagent_stage.sh` | Helper script for running a specific UCAgent stage via `--force-stage-index`; use stage 1 for backpressure, 2 for CRV/coverage, 3 for dirty-writeback closure, and 4 for bug injection. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/scripts/reproduce.sh` | Main reproducibility entry. Runs normal regression, coverage collection, expected-failure bug injection, and bug recovery path. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/scripts/run_bug_injection.sh` | Wrapper for the controlled bug-injection harness, including the `--disable-bug` recovery mode. |
@@ -62,6 +63,7 @@ This file is the top-level map for the Markdown documents maintained for the Tra
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/dirty_writeback_stage_zh.md` | Chinese mirror of the dirty-writeback-stage UCAgent output. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/bug_injection_stage_zh.md` | Chinese mirror of the bug-injection-stage UCAgent output. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/bug_tracking_zh.md` | Chinese mirror of the bug-tracking evidence record. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/final_report_stage_zh.md` | Chinese mirror of the final-report-stage UCAgent output. |
 
 ## Update Rule
 

@@ -57,7 +57,7 @@ Current checks:
 ## Regression Result
 
 ```text
-scripts/run_regression.sh -> 7 passed in 0.14s
+scripts/run_regression.sh -> 7 passed in 0.15s
 ```
 
 ## Random Coverage Bootstrap
@@ -90,7 +90,7 @@ Command results:
 
 ```text
 scripts/collect_coverage.sh 7 18 -> 1 passed in 0.04s
-scripts/run_regression.sh -> 7 passed in 0.14s
+scripts/run_regression.sh -> 7 passed in 0.15s
 ```
 
 ## Coverage Candidates
@@ -138,7 +138,7 @@ tests/injected_bug/run_bug_injection.py -> exit 1
 tests/injected_bug/run_bug_injection.py --disable-bug -> exit 0
   BUG-001 mode=disabled: clean reference-model read_word() at addr 0x80000000
   BUG-001 recovery path: bug injection disabled, scoreboard checks passed.
-scripts/run_regression.sh -> 7 passed in 0.14s
+scripts/run_regression.sh -> 7 passed in 0.15s
 ```
 
 ## Reproducibility Entry

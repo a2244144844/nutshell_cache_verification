@@ -5,7 +5,9 @@ tools/picker/
 upstream/env-xs-ov-00-nutshell-cache/
 upstream/NutShell/
 .codex/
+.claude/
 .ucagent/
+.mcp.json
 Guide_Doc/
 .DS_Store
 __pycache__/

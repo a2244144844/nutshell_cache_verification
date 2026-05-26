@@ -35,6 +35,7 @@
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/crv_coverage_stage.md` | UCAgent CRV/coverage stage 输出。记录了变更文件、命令、精确通过/失败结果、覆盖率摘要和剩余缺口。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/dirty_writeback_stage.md` | UCAgent dirty-writeback 闭环 stage 输出。记录了变更文件、命令、精确通过/失败结果、覆盖率增量和残留风险。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/bug_injection_stage.md` | UCAgent bug-injection stage 输出。记录变更文件、预期失败命令、恢复命令、干净回归结果和残留风险。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/final_report_stage.md` | UCAgent 最终报告打包 stage 输出。记录审查的文件、运行的命令、精确结果、提交检查清单状态和残留风险。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/scripts/run_ucagent_stage.sh` | 通过 `--force-stage-index` 运行指定 UCAgent stage 的辅助脚本；1 对应 backpressure，2 对应 CRV/coverage，3 对应 dirty-writeback 闭环，4 对应 bug injection。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/scripts/reproduce.sh` | 一键复现入口。运行正常回归、覆盖率收集、预期失败 bug 注入和 bug 恢复路径。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/scripts/run_bug_injection.sh` | 受控 bug-injection harness 的包装脚本，支持 `--disable-bug` 恢复模式。 |
@@ -62,6 +63,7 @@
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/dirty_writeback_stage_zh.md` | Dirty-writeback stage UCAgent 输出的中文镜像。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/bug_injection_stage_zh.md` | Bug-injection stage UCAgent 输出的中文镜像。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/bug_tracking_zh.md` | Bug 追踪证据记录的中文镜像。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/final_report_stage_zh.md` | 最终报告打包 stage UCAgent 输出的中文镜像。 |
 
 ## 更新规则
 

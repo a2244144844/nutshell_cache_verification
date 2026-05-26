@@ -51,21 +51,21 @@ CRV/coverage result:
 
 - Stage: `crv_coverage_bootstrap`
 - Output: `docs/ucagent_output/crv_coverage_stage.md` and `docs/coverage_report.md`
-- Current supervised result: `scripts/collect_coverage.sh 7 18` passed with `1 passed in 0.04s`; `scripts/run_regression.sh` passed with `7 passed in 0.14s`
+- Current supervised result: `scripts/collect_coverage.sh 7 18` passed with `1 passed in 0.04s`; `scripts/run_regression.sh` passed with `7 passed in 0.15s`
 - Known gap: none in the current functional-coverage bootstrap set.
 
 Dirty writeback closure result:
 
 - Stage: `dirty_writeback_coverage_closure`
 - Output: `docs/ucagent_output/dirty_writeback_stage.md` and `docs/coverage_report.md`
-- Current supervised result: `scripts/collect_coverage.sh 7 18` passed with `1 passed in 0.04s`; `scripts/run_regression.sh` passed with `7 passed in 0.14s`
+- Current supervised result: `scripts/collect_coverage.sh 7 18` passed with `1 passed in 0.04s`; `scripts/run_regression.sh` passed with `7 passed in 0.15s`
 - Coverage delta: `dirty_miss_writeback_refill` moved from `0` to `1`.
 
 Bug-injection evidence result:
 
 - Stage: `bug_injection_evidence`
 - Output: `docs/ucagent_output/bug_injection_stage.md` and `docs/bug_tracking.md`
-- Current supervised result: `tests/injected_bug/run_bug_injection.py` exited with code `1` with the expected scoreboard failure; `tests/injected_bug/run_bug_injection.py --disable-bug` exited with code `0`; `scripts/run_regression.sh` passed with `7 passed in 0.14s`
+- Current supervised result: `tests/injected_bug/run_bug_injection.py` exited with code `1` with the expected scoreboard failure; `tests/injected_bug/run_bug_injection.py --disable-bug` exited with code `0`; `scripts/run_regression.sh` passed with `7 passed in 0.15s`
 
 ## Phase 0: Workspace And Source Preparation
 
@@ -242,5 +242,6 @@ Current result:
 - `scripts/reproduce.sh` provides a one-command reproducibility entry: regression, coverage collection, expected-failure bug injection, and recovery path, validated with `scripts/clean_generated.sh && scripts/reproduce.sh -> PASS`.
 - `scripts/clean_generated.sh` removes generated build, cache, Python bytecode, and wave artifacts.
 - `scripts/run_bug_injection.sh` wraps the controlled bug-injection harness with `--disable-bug` recovery mode.
-- `README.md`, `docs/ai_collaboration_report.md`, and `docs/coverage_report.md` have been iterated across multiple UCAgent stages and remain the final-deliverable candidates.
-- Final report packaging and submission-ready review are still in progress.
+- `README.md`, `docs/ai_collaboration_report.md`, and `docs/coverage_report.md` have been iterated across all six UCAgent stages and are submission-ready.
+- Final report packaging completed. `docs/ucagent_output/final_report_stage.md` records the reviewed files, command results, submission checklist, and remaining risks.
+- Latest validation: `scripts/run_regression.sh -> 7 passed in 0.15s`; `scripts/reproduce.sh -> [reproduce] PASS`.

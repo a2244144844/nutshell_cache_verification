@@ -15,7 +15,7 @@ Current Cache-task status:
 
 - `configs/ucagent_track1_cache.yaml` exists.
 - UCAgent ran stages `cache_regression_audit`, `backpressure_directed_tests`, `crv_coverage_bootstrap`, `dirty_writeback_coverage_closure`, and `bug_injection_evidence` with Codex backend.
-- The stages inspected planning/test files, ran the requested commands, wrote `docs/ucagent_output/stage_audit.md`, `docs/ucagent_output/backpressure_stage.md`, `docs/ucagent_output/crv_coverage_stage.md`, `docs/ucagent_output/dirty_writeback_stage.md`, and `docs/ucagent_output/bug_injection_stage.md`, and called `SetCurrentStageJournal` plus `Complete`.
+- The stages inspected planning/test files, ran the requested commands, wrote `docs/ucagent_output/stage_audit.md`, `docs/ucagent_output/backpressure_stage.md`, `docs/ucagent_output/crv_coverage_stage.md`, `docs/ucagent_output/dirty_writeback_stage.md`, `docs/ucagent_output/bug_injection_stage.md`, and `docs/ucagent_output/final_report_stage.md`, and called `SetCurrentStageJournal` plus `Complete`.
 - The audit regression result was `4 passed in 0.11s`.
 - The dirty-writeback closure stage result was `scripts/collect_coverage.sh 7 18 -> 1 passed in 0.12s` and `scripts/run_regression.sh -> 7 passed in 0.13s`.
 - Latest local recheck after removing the out-of-scope bug-injection drafts: `tests/directed/test_dirty_writeback.py -> 1 passed in 0.17s`, `scripts/collect_coverage.sh 7 18 -> 1 passed in 0.04s`, and `scripts/run_regression.sh -> 7 passed in 0.13s`.
@@ -50,6 +50,48 @@ Remediation plan:
 | Step 13 | 2026-05-26 | Implemented dirty-victim writeback/refill closure through UCAgent: added a directed 4-way set conflict test, taught the environment to acknowledge writeback beats before refill, extended the random/coverage flow to trigger the dirty path, and refreshed the documentation set. | Accepted the writeback/refill evidence after verifying the victim was one of the four conflicted ways and the coverage report now shows `dirty_miss_writeback_refill` covered. | `tests/directed/test_dirty_writeback.py` passed with `1 passed in 0.04s`; `scripts/collect_coverage.sh 7 18` passed with `1 passed in 0.12s`; `scripts/run_regression.sh` passed with `7 passed in 0.13s`. Coverage delta: `dirty_miss_writeback_refill` moved from `0` to `1`. |
 | Step 14 | 2026-05-26 | Added the controlled bug-injection harness under `tests/injected_bug/`, injected a one-bit corruption into the reference-model expected data, and wrote `docs/bug_tracking.md` plus the stage output artifact. | Treated the failure as intentional evidence: the corrupted expected value trips `CacheScoreboard.check_read_response()`, while the disable path proves the same flow recovers cleanly. | `tests/injected_bug/run_bug_injection.py` exited with code `1` and the expected scoreboard failure; `tests/injected_bug/run_bug_injection.py --disable-bug` exited with code `0`; latest `scripts/run_regression.sh` passed with `7 passed in 0.14s`. |
 | Step 15 | 2026-05-26 | Added the one-command reproducibility entry `scripts/reproduce.sh`, the bug-injection wrapper `scripts/run_bug_injection.sh`, and the cleanup helper `scripts/clean_generated.sh`; removed the hardcoded workspace root from `scripts/collect_coverage.sh`. | Chose to validate from a cleaned generated-artifact state so the entry proves rebuild, regression, coverage, intentional bug failure, and recovery in one path. | `bash -n` passed for the shell scripts; `scripts/run_bug_injection.sh --disable-bug` passed; `scripts/clean_generated.sh && scripts/reproduce.sh` completed with `[reproduce] PASS`. |
+| Step 16 | 2026-05-26 | Inspected all deliverable documents (README.md, ai_collaboration_report.md, verification_plan.md, coverage_report.md, bug_tracking.md, test_points.md, ucagent_operation_plan.md), ran `scripts/run_regression.sh` and `scripts/reproduce.sh`, reviewed submission readiness, added Prompt Strategy Review section to this report, updated README/verification plan/test points with final timing, created `docs/ucagent_output/final_report_stage.md`, and updated `top.md`. | Reviewed all docs for completeness; verified one-command reproducibility still passes; confirmed all six UCAgent stages have output artifacts; confirmed prompt strategy and manual-vs-AI decisions are documented. | `scripts/run_regression.sh -> 7 passed in 0.15s`; `scripts/reproduce.sh -> [reproduce] PASS`; final report stage artifact created; submission checklist completed. |
+
+## Prompt Strategy Review
+
+This section records the prompt strategy used across all UCAgent stages and the rationale behind key prompt decisions.
+
+### Stage Prompt Design
+
+Each UCAgent stage used a structured prompt containing:
+
+- **Mission context**: the workspace path, current stage index, and the stage title.
+- **Task description**: a concrete list of files to inspect, commands to run, and output files to create.
+- **Reference files**: enumerated so the agent knows what to read before acting.
+- **Output expectations**: required output files with expected content structure.
+- **Check/Complete instructions**: explicit direction to call `SetCurrentStageJournal` before `Complete`.
+
+### Prompt Evolution Across Stages
+
+| Stage | Prompt Strategy | Rationale |
+| --- | --- | --- |
+| Audit (Stage 0) | Read-only inspection + existing regression rerun | Lowest-risk first stage; validates the UCAgent/Codex linkage without code changes. |
+| Backpressure (Stage 1) | Directed test implementation + environment extension | First implementation stage; prompts included explicit file-creation targets and command validation. |
+| CRV/Coverage (Stage 2) | Generator + coverage model creation + bootstrap run | Required environment-level awareness; prompt included seed/transaction parameters for reproducibility. |
+| Dirty Writeback (Stage 3) | Targeted coverage-gap closure with directed set-conflict test | Narrow scope: one coverage bin to fill; prompt specified the exact gap and the expected closure evidence. |
+| Bug Injection (Stage 4) | Controlled fault injection with expected-failure and recovery paths | Two-path verification: prompt required both the failure path (exit 1) and the disable/recovery path (exit 0). |
+| Final Report (Stage 5) | Document audit + script validation + submission checklist | Read-only review with artifact creation; prompt enumerated every document to inspect and every command to rerun. |
+
+### Prompt Strategy Lessons
+
+- **Concrete commands beat abstract goals**: prompts that specified exact `scripts/run_regression.sh` commands produced more reliable verification than prompts asking to "verify the regression suite."
+- **Exact pass/fail framing prevents overclaiming**: prompts that required recording exact `7 passed in 0.15s` output prevented the agent from summarizing results imprecisely.
+- **Output file templates reduce drift**: prompts that named specific output files (`docs/ucagent_output/final_report_stage.md`) kept stage artifacts consistent and discoverable.
+- **Stage isolation matters**: each prompt was scoped to one stage only, preventing scope creep into adjacent stages (the earlier CRV stage overrun into bug-injection was caught and corrected by this design).
+
+### Human Review Checkpoints
+
+Each stage prompt required human review of:
+
+1. Files changed by the agent before calling `Complete`.
+2. Command output passthrough (no summarization or reinterpretation).
+3. Journal content accuracy before `SetCurrentStageJournal`.
+4. Whether the stage actually demonstrated UCAgent orchestration vs. direct Codex work.
 
 ## Current Manual Decisions
 
