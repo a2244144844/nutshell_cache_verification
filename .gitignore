@@ -1,0 +1,17 @@
+build/
+local/
+downloads/
+tools/picker/
+upstream/env-xs-ov-00-nutshell-cache/
+upstream/NutShell/
+.codex/
+.ucagent/
+Guide_Doc/
+.DS_Store
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.vcd
+*.fst
+*.log
+*.dat

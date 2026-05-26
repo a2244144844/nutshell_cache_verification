@@ -1,0 +1,123 @@
+mission:
+  name: "Track1 NutShell Cache UCAgent Verification"
+  prompt:
+    system: |
+      You are working inside the Track1 NutShell Cache verification workspace.
+      Your role is to make each new verification implementation stage visibly
+      UCAgent-driven while using Codex as the backend engineering agent.
+
+      Work stage by stage. For each stage:
+      1. Inspect the listed files before editing.
+      2. Keep changes scoped to that stage.
+      3. Run the requested test or regression command.
+      4. Create the requested UCAgent output artifact under docs/ucagent_output.
+      5. Update docs/test_points.md and docs/ai_collaboration_report.md with
+         exact command results.
+      6. Call SetCurrentStageJournal with files changed, commands run, and
+         pass/fail result.
+      7. Call Complete only after the required output files exist.
+      8. When a stage is launched with scripts/run_ucagent_stage.sh, call Exit
+         immediately after Complete so the run stays on one explicit stage.
+
+mcp_server:
+  init_prompt: >
+    请先通过 RoleInfo 获取当前 UCAgent 角色信息。完成本阶段前，必须调用
+    SetCurrentStageJournal 记录阶段日志，然后调用 Complete；Complete 后立即
+    调用 Exit，避免自动推进到后续阶段。
+
+template: ""
+
+template_overwrite:
+  OUT: "docs/ucagent_output"
+
+stage:
+  - name: cache_regression_audit
+    desc: "Audit the current Cache verification regression through UCAgent"
+    task:
+      - "Inspect README.md, top.md, docs/ucagent_operation_plan.md, docs/test_points.md, and scripts/run_regression.sh."
+      - "Run scripts/run_regression.sh from the workspace root."
+      - "Create docs/ucagent_output/stage_audit.md."
+      - "The audit file must include: stage name, files inspected, command run, exact pass/fail result, any warnings, and whether this stage should be considered UCAgent-driven evidence."
+      - "Do not edit source or test files in this audit stage unless the regression command cannot run because of a trivial path issue."
+      - "Before completing, call SetCurrentStageJournal with the command result and created output file."
+      - "Call Complete after docs/ucagent_output/stage_audit.md exists."
+    output_files:
+      - "docs/ucagent_output/stage_audit.md"
+
+  - name: backpressure_directed_tests
+    desc: "Implement memory and CPU response backpressure directed tests through UCAgent"
+    task:
+      - "Inspect src/env/cache_env.py, src/utils/simplebus.py, tests/directed, docs/test_points.md, and docs/ai_collaboration_report.md."
+      - "Add focused backpressure support to the environment only if needed."
+      - "Implement directed tests for io_out_mem_req_ready backpressure and io_in_resp_ready backpressure. Prefer tests/corner/test_backpressure.py unless a more suitable existing directory is justified."
+      - "The memory request backpressure test must deassert io_out_mem_req_ready long enough to show the request is held or retried without loss."
+      - "The CPU response backpressure test must deassert io_in_resp_ready long enough to show the response is not lost."
+      - "Run scripts/run_regression.sh from the workspace root after implementation."
+      - "Create docs/ucagent_output/backpressure_stage.md with stage name, files changed, command run, exact pass/fail result, and remaining risks."
+      - "Update docs/test_points.md and docs/ai_collaboration_report.md with the exact regression result."
+      - "Call SetCurrentStageJournal with changed files and command result before calling Complete."
+    output_files:
+      - "tests/corner/test_backpressure.py"
+      - "docs/test_points.md"
+      - "docs/ai_collaboration_report.md"
+      - "docs/ucagent_output/backpressure_stage.md"
+
+  - name: crv_coverage_bootstrap
+    desc: "Implement constrained random traffic and first functional coverage report through UCAgent"
+    task:
+      - "Inspect src/env, src/generator, src/utils, tests/random, docs/test_points.md, and docs/coverage_report.md if it exists."
+      - "Create or update a constrained random generator for Cache read/write traffic, with deterministic seed support."
+      - "Add a small random regression test that uses legal memory addresses, read/write commands, write masks, and a reference model sufficient for checked results."
+      - "Create a functional coverage utility that records at least command type, hit/miss proxy, write-mask class, word offset, and refill path coverage."
+      - "Add scripts/run_random.sh and scripts/collect_coverage.sh if they do not exist."
+      - "Run the narrow random/coverage command and then scripts/run_regression.sh."
+      - "Create docs/coverage_report.md with coverage bins, observed counts, gaps, and next closure actions."
+      - "Create docs/ucagent_output/crv_coverage_stage.md with changed files, commands run, exact pass/fail result, and coverage summary."
+      - "Update docs/ai_collaboration_report.md with this UCAgent stage result."
+      - "Call SetCurrentStageJournal with changed files, coverage summary, and command results before calling Complete."
+    output_files:
+      - "src/generator"
+      - "tests/random"
+      - "scripts/run_random.sh"
+      - "scripts/collect_coverage.sh"
+      - "docs/coverage_report.md"
+      - "docs/ai_collaboration_report.md"
+      - "docs/ucagent_output/crv_coverage_stage.md"
+
+  - name: dirty_writeback_coverage_closure
+    desc: "Close the dirty miss writeback/refill coverage gap before bug injection"
+    task:
+      - "Inspect src/env/cache_env.py, src/utils/simplebus.py, src/utils/cache_coverage.py, tests/directed, tests/random/test_random_cache.py, scripts/run_regression.sh, scripts/collect_coverage.sh, docs/coverage_report.md, docs/test_points.md, docs/ai_collaboration_report.md, and top.md."
+      - "Implement a directed dirty-victim eviction/writeback test. Prefer tests/directed/test_dirty_writeback.py unless another existing file is clearly better."
+      - "The test should fill all four ways in one cache set with distinct normal memory lines, dirty at least the victim line with a write hit, then access a fifth conflicting line to force a dirty writeback followed by refill."
+      - "Check the observed memory request sequence includes WRITE_BURST or WRITE_LAST followed by a READ_BURST/READ refill request, and validate the writeback address/data when practical."
+      - "Extend the coverage flow so dirty_miss_writeback_refill is recorded as covered. This may be done by including the directed dirty-writeback transaction in coverage collection or by adding a focused coverage test that exercises the same path."
+      - "Run the focused dirty-writeback test, scripts/collect_coverage.sh 7 18, and scripts/run_regression.sh from the workspace root."
+      - "Create docs/ucagent_output/dirty_writeback_stage.md with changed files, commands run, exact pass/fail result, coverage delta, and remaining risks."
+      - "Update docs/coverage_report.md, docs/test_points.md, docs/ai_collaboration_report.md, README.md, docs/verification_plan.md, docs/ucagent_operation_plan.md, and top.md with this stage result and the new next stage index for bug injection."
+      - "Call SetCurrentStageJournal with changed files, coverage summary, and command results before calling Complete."
+      - "After Complete, call Exit immediately. Do not start bug_injection_evidence in this run."
+    output_files:
+      - "tests/directed/test_dirty_writeback.py"
+      - "docs/coverage_report.md"
+      - "docs/test_points.md"
+      - "docs/ai_collaboration_report.md"
+      - "docs/ucagent_output/dirty_writeback_stage.md"
+
+  - name: bug_injection_evidence
+    desc: "Implement bug-injection evidence and tracking through UCAgent"
+    task:
+      - "Inspect tests/injected_bug, src/scoreboard, docs/test_points.md, docs/coverage_report.md, and docs/ai_collaboration_report.md."
+      - "Design at least one controlled bug-injection scenario that demonstrates the verification environment detects an error. Prefer a Python/reference-model or generated-copy approach that does not permanently corrupt rtl/dut/Cache.v."
+      - "The bug evidence must include trigger, expected checker/scoreboard failure, observed failure message, and recovery/disable path."
+      - "Create or update tests/injected_bug with the injected-bug test or harness."
+      - "Create docs/bug_tracking.md with bug ID, injected fault, trigger, detection path, failure evidence, and cleanup/recovery notes."
+      - "Run the injected-bug command and the normal scripts/run_regression.sh to prove the main suite remains clean."
+      - "Create docs/ucagent_output/bug_injection_stage.md with changed files, commands run, exact pass/fail result, and remaining risks."
+      - "Update docs/ai_collaboration_report.md with this UCAgent stage result."
+      - "Call SetCurrentStageJournal with changed files and command results before calling Complete."
+    output_files:
+      - "tests/injected_bug"
+      - "docs/bug_tracking.md"
+      - "docs/ai_collaboration_report.md"
+      - "docs/ucagent_output/bug_injection_stage.md"
