@@ -127,6 +127,7 @@ competition/track1_nutshell_cache/scripts/run_bug_injection.sh --disable-bug
 | ID | 检查点 | 状态 |
 | --- | --- | --- |
 | `BUG-001` | 参考模型预期数据损坏由 `CacheScoreboard.check_read_response()` 检出。 | 已实现 |
+| `BUG-RTL-001` | RTL 级脏写回状态机旁路（`Cache.v:615`）；`test_dirty_writeback.py` 检出缺失 `WRITE_BURST`。 | 已实现 |
 
 命令结果：
 

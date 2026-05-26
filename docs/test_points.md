@@ -127,6 +127,7 @@ Current checks:
 | ID | Point | Status |
 | --- | --- | --- |
 | `BUG-001` | Corrupted reference-model expected data is detected by `CacheScoreboard.check_read_response()`. | Implemented |
+| `BUG-RTL-001` | RTL-level dirty-writeback state-machine bypass (`Cache.v:615`); `test_dirty_writeback.py` detects missing `WRITE_BURST`. | Implemented |
 
 Command results:
 
