@@ -5,27 +5,28 @@
 ## 当前状态
 
 - 本机已安装 UCAgent 和 Codex CLI。
-- UCAgent/Codex 联动已验证通过，且已产生针对 Cache 的 audit、backpressure、CRV/coverage、dirty-writeback、bug-injection 和 final report 六个 stage 的 UCAgent 运行记录。
+- UCAgent/Codex 和 UCAgent/Claude Code 联动已验证通过，且已产生针对 Cache 的 audit、backpressure、CRV/coverage、dirty-writeback、bug-injection、final report、flush 和 coherence probe 八个 stage 的证据记录。
 - GitLink 赛题环境仓库已克隆到 `upstream/env-xs-ov-00-nutshell-cache`。
 - 选定 DUT 为 Picker 的 Cache 示例 RTL，已复制到 `rtl/dut/Cache.v`。
 - Picker 将选定 DUT 导出为 Python 类 `DUTCache`。
 - `scripts/run_smoke.sh` 已通过首个 reset/read/write smoke test。
 - 首个可复用的 Python 验证骨架已建立，位于 `src/env`、`src/monitor`、`src/scoreboard` 和 `src/utils`。
-- 定向测试目前覆盖了部分写掩码、同 cache line 内不同 word 偏移、完整 8-beat refill 顺序以及 dirty-victim writeback/refill 闭环。
-- `scripts/run_regression.sh` 目前通过 smoke、directed、corner 测试，共 `7 passed in 0.15s`。
-- `scripts/collect_coverage.sh 7 18` 通过 CRV/coverage bootstrap，`1 passed in 0.04s`，dirty writeback 缺口现已关闭。
+- 定向测试目前覆盖了部分写掩码、同 cache line 内不同 word 偏移、完整 8-beat refill 顺序、无效路替换优先级、MMIO 旁路、flush 行为、coherence probe 命中/缺失、write miss、clean eviction、dirty-victim writeback/refill，以及 write miss dirty eviction 闭环。
+- `scripts/run_directed.sh` 目前通过全部 directed 测试，共 `23 passed in 1.05s`。
+- `scripts/run_regression.sh` 目前通过 smoke、directed、corner 测试，共 `26 passed in 1.34s`。
+- `scripts/collect_coverage.sh 7 18` 通过完整覆盖率采集运行，结果为 `27 passed`；Toffee 功能覆盖率模型为 12 个 group、31 个 point、37 个 bin，全部 100% covered。
 - 首个 Cache 专属 UCAgent audit stage 已完成，生成了 `docs/ucagent_output/stage_audit.md`。
-- UCAgent backpressure、CRV/coverage、dirty-writeback 闭环、bug-injection 和 final report 六个 stage 已完成，生成了 `docs/ucagent_output/backpressure_stage.md`、`docs/ucagent_output/crv_coverage_stage.md`、`docs/ucagent_output/dirty_writeback_stage.md`、`docs/ucagent_output/bug_injection_stage.md` 和 `docs/ucagent_output/final_report_stage.md`。
+- UCAgent backpressure、CRV/coverage、dirty-writeback 闭环、bug-injection、final report、flush 和 coherence probe stage 已完成，生成了 `docs/ucagent_output/backpressure_stage.md`、`docs/ucagent_output/crv_coverage_stage.md`、`docs/ucagent_output/dirty_writeback_stage.md`、`docs/ucagent_output/bug_injection_stage.md`、`docs/ucagent_output/final_report_stage.md`、`docs/ucagent_output/flush_stage.md` 和 `docs/ucagent_output/coherence_probe_stage.md`。
 - `scripts/reproduce.sh` 是一键复现入口，已从清理生成物后的状态验证通过。
 
 ## UCAgent 集成状态
 
-当前验证进展真实且可复现。项目现已拥有六个 Cache 专属 UCAgent stage 产物，覆盖 audit、backpressure、CRV/coverage、dirty-writeback 闭环、bug-injection 证据和最终报告打包。
+当前验证进展真实且可复现。项目现已拥有八个 Cache 专属 UCAgent stage 产物，覆盖 audit、backpressure、CRV/coverage、dirty-writeback 闭环、bug-injection 证据、最终报告打包、flush 行为和 coherence probe。后续由其他 agent 完成的 write miss / eviction 定向补强已记录在 AI 协同报告中。
 
 - 已有工作：Codex 在本工作区中实现并运行了 Cache 验证文件。
 - 工作区外已验证：`instruction.md` 证明了本地 UCAgent → Codex → MCP `Complete` 路径可运行。
-- 工作区内已验证：`configs/ucagent_track1_cache.yaml` 通过 UCAgent/Codex 运行了 `cache_regression_audit`、`backpressure_directed_tests`、`crv_coverage_bootstrap`、`dirty_writeback_coverage_closure` 和 `bug_injection_evidence`，记录了 stage journal 并调用了 `Complete`。
-- 提交就绪：全部六个 UCAgent stage 已完成，回归干净，可复现入口已验证通过。
+- 工作区内已验证：`configs/ucagent_track1_cache.yaml` 通过 UCAgent/Codex 或 UCAgent/Claude Code 运行了已配置的 Cache stage，记录了 stage journal 并调用了 `Complete`。
+- 提交就绪：已配置的 UCAgent stage 已完成，post-coherence 定向测试干净通过，回归干净，可复现入口已验证通过。
 - Config 校验通过：`ucagent --emulate-config --force-stage-index 1` 识别了全部 stage 并选中 backpressure stage。
 - 最终报告打包已完成。参见 `docs/ucagent_output/final_report_stage.md`。
 - 集成计划：参见 `docs/ucagent_operation_plan.md`。
@@ -52,6 +53,7 @@ competition/track1_nutshell_cache/
 │   ├── ucagent_output/
 │   │   ├── backpressure_stage.md
 │   │   ├── bug_injection_stage.md
+│   │   ├── coherence_probe_stage.md
 │   │   ├── crv_coverage_stage.md
 │   │   ├── dirty_writeback_stage.md
 │   │   ├── final_report_stage.md
@@ -67,8 +69,9 @@ competition/track1_nutshell_cache/
 │   └── utils/
 ├── tests/
 │   ├── smoke/
-│   ├── random/
 │   ├── corner/
+│   ├── directed/
+│   ├── random/
 │   └── injected_bug/
 ├── scripts/
 │   ├── clean_generated.sh
@@ -85,11 +88,21 @@ competition/track1_nutshell_cache/
 
 ## 验证完成
 
-全部计划的 UCAgent stage 均已完成：
+当前提交包内计划的验证工作均已完成：
 
 1. 最终报告打包和可复现性清理已完成。
-2. Bug-injection harness 保持在正常回归路径之外，`scripts/run_regression.sh` 仍干净通过 `7 passed in 0.15s`。
+2. Bug-injection harness 保持在正常回归路径之外，`scripts/run_regression.sh` 仍干净通过 `26 passed in 1.34s`。
 3. 完整可复现入口 `scripts/reproduce.sh` 已验证通过。
+
+## 模板对齐报告集
+
+UCAgent 模板风格的整合 Markdown 交付物位于：
+
+```text
+unity_test/
+```
+
+`unity_test/Cache_basic_info.md`、`unity_test/Cache_verification_needs_and_plan.md`、`unity_test/Cache_functions_and_checks.md`、`unity_test/Cache_line_coverage_analysis.md`、`unity_test/Cache_bug_analysis.md` 和 `unity_test/Cache_test_summary.md` 已将 `docs/` 下的过程记录整合成提交面向报告。
 
 ## 可复现入口
 

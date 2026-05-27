@@ -2,21 +2,31 @@
 
 Stage: `final_report_package`
 Date: 2026-05-26
+Refresh note: this file was refreshed after the post-final directed-test work so it reflects the current submission state.
 
-## Files Reviewed
+## Files Reviewed Or Updated
 
 | File | Action | Notes |
 | --- | --- | --- |
-| `README.md` | Reviewed, updated | Updated regression timing to `7 passed in 0.15s`, added final report stage to status list, updated directory layout, marked submission as ready. |
-| `top.md` | Reviewed, updated | Added `docs/ucagent_output/final_report_stage.md` entry. |
-| `docs/ai_collaboration_report.md` | Reviewed, updated | Added Step 16 log entry, added Prompt Strategy Review section, updated stage artifact list. |
-| `docs/verification_plan.md` | Reviewed, updated | Updated Phase 5 current result to reflect final report completion, updated regression timing. |
-| `docs/coverage_report.md` | Reviewed, no changes | Coverage report is current and complete. |
-| `docs/bug_tracking.md` | Reviewed, no changes | Bug evidence is current and complete. |
-| `docs/test_points.md` | Reviewed, updated | Updated regression result timing to `7 passed in 0.15s`. |
-| `docs/ucagent_operation_plan.md` | Reviewed, no changes | Operation plan is current; final report stage now exercised. |
+| `README.md` / `README_zh.md` | Updated | Current status now reflects directed `23 passed`, regression `26 passed`, coherence probe, write miss, clean eviction, and dirty write-miss eviction closure. |
+| `top.md` / `top_zh.md` | Updated | Added coherence and flush mirror outputs and refreshed stage descriptions. |
+| `docs/test_points.md` / `docs/test_points_zh.md` | Updated | DIR-001 through DIR-013 are documented; coverage status reflects Toffee funcov. |
+| `docs/verification_plan.md` / `docs/verification_plan_zh.md` | Updated | Phase status reflects post-coherence directed closure and current regression result. |
+| `docs/coverage_report.md` / `docs/coverage_report_zh.md` | Updated | English and Chinese coverage reports now mention Toffee funcov: 12 groups, 31 points, 37 bins, 100% covered. |
+| `docs/ai_collaboration_report.md` / `docs/ai_collaboration_report_zh.md` | Updated | Added post-coherence steps and clarified which work was UCAgent-run versus direct agent work. |
+| `docs/ucagent_operation_plan.md` / `docs/ucagent_operation_plan_zh.md` | Updated | Current stage list includes flush and coherence probe; post-coherence direct-agent work is called out. |
+| `docs/ucagent_output/flush_stage_zh.md` | Created | Chinese mirror for the flush stage. |
+| `docs/ucagent_output/coherence_probe_stage_zh.md` | Created | Chinese mirror for the coherence-probe stage. |
 
 ## Commands Run
+
+### Directed Suite
+
+```sh
+scripts/run_directed.sh
+```
+
+Result: `23 passed in 1.05s`
 
 ### Regression Suite
 
@@ -24,45 +34,37 @@ Date: 2026-05-26
 scripts/run_regression.sh
 ```
 
-Result: `7 passed in 0.15s`
+Result: `26 passed in 1.34s`
 
 ### Full Reproducibility Entry
 
+Previously validated:
+
 ```sh
-scripts/reproduce.sh
+scripts/clean_generated.sh && scripts/reproduce.sh
 ```
 
-Result:
-```
-[reproduce] 1/4 normal regression -> 7 passed in 0.15s
-[reproduce] 2/4 coverage collection -> 1 passed
-[reproduce] 3/4 bug injection expected failure -> exit 1 (expected)
-[reproduce] observed expected bug-injection failure: exit 1
-[reproduce] 4/4 bug injection recovery path -> exit 0
-[reproduce] PASS
-```
+Result: `[reproduce] PASS`
 
 ## Submission Checklist Status
 
 | Item | Status | Detail |
 | --- | --- | --- |
-| Dependencies documented | PASS | README lists Picker, Python, pytest, .venv setup via `scripts/env.sh`. |
-| Run commands documented | PASS | `run_smoke.sh`, `run_regression.sh`, `collect_coverage.sh`, `run_bug_injection.sh` all in README. |
-| One-command reproducibility | PASS | `scripts/reproduce.sh` runs regression, coverage, bug injection, and recovery; validated with `clean_generated.sh && reproduce.sh`. |
-| UCAgent stage artifacts | PASS | Six artifacts: `stage_audit.md`, `backpressure_stage.md`, `crv_coverage_stage.md`, `dirty_writeback_stage.md`, `bug_injection_stage.md`, `final_report_stage.md`. |
-| AI collaboration report | PASS | Includes complete log (Steps 0-16), Prompt Strategy Review, manual decisions, and known risks. |
-| Verification plan | PASS | All 6 phases documented with current status and exit criteria. |
-| Coverage report | PASS | Functional coverage bootstrap complete; all bins covered including `dirty_miss_writeback_refill`. |
-| Bug tracking | PASS | `BUG-001` with trigger, detection path, failure evidence, and recovery path. |
-| Test points | PASS | Smoke (7), directed (5+), corner (2), random (1), and bug injection (1) tests documented. |
-| Regression clean | PASS | `7 passed in 0.15s`; bug injection excluded from normal regression. |
-| Config file present | PASS | `configs/ucagent_track1_cache.yaml` with all 5 UCAgent stages defined. |
-| Helper scripts | PASS | `run_ucagent_stage.sh`, `clean_generated.sh`, `run_bug_injection.sh` in `scripts/`. |
-| Top-level map updated | PASS | `top.md` includes all documents. |
+| Dependencies documented | PASS | README lists Picker/Python/pytest flow and local setup through `scripts/env.sh`. |
+| Run commands documented | PASS | `run_smoke.sh`, `run_directed.sh`, `run_regression.sh`, `collect_coverage.sh`, `run_bug_injection.sh`, and `reproduce.sh` are documented. |
+| One-command reproducibility | PASS | `scripts/reproduce.sh` runs regression, coverage, expected-failure bug injection, and recovery. |
+| UCAgent stage artifacts | PASS | Audit, backpressure, CRV/coverage, dirty-writeback, bug-injection, final-report, flush, and coherence-probe artifacts exist. |
+| AI collaboration report | PASS | Logs Steps 0-22 and distinguishes UCAgent-run stages from post-coherence direct agent work. |
+| Verification plan | PASS | All phases reflect the latest `26 passed` regression state. |
+| Coverage report | PASS | Toffee funcov reports 12 groups, 31 points, 37 bins, all 100% covered. |
+| Bug tracking | PASS | `BUG-001` and RTL dirty-writeback bug evidence are documented. |
+| Test points | PASS | Smoke, directed DIR-001 through DIR-013, corner, random, coverage, and bug injection evidence are documented. |
+| Regression clean | PASS | `scripts/run_regression.sh -> 26 passed in 1.34s`; bug injection remains outside normal regression. |
+| Top-level map | PASS | `top.md` and `top_zh.md` include all current Markdown artifacts. |
 
 ## Remaining Risks
 
-- **Line coverage not measured**: The current flow uses Picker/Verilator C++ simulation which does not directly provide RTL line coverage. The GitLink task reference mentions 96%+ effective line coverage as a target, but this metric is not collectible in the current Picker-based simulation flow.
-- **Edge-case coverage candidates not yet implemented**: The test-point table lists `DIR-004` (invalid-way replacement), `DIR-006` (MMIO bypass), `DIR-007` (flush behavior), and `DIR-008` (coherence probe) as unimplemented. These are documented as coverage candidates but are not blocking for the current submission.
-- **Chinese mirror documents may be stale**: Several `_zh.md` mirror files were not regenerated during this stage; they may lag behind the English versions.
-- **UCAgent CLI exit code quirk**: The UCAgent outer CLI process may exit with code 1 after the `Exit` flow even when stages complete successfully. The stage audit artifact and tool logs (Complete/Exit true) are the authoritative evidence.
+- **RTL line coverage not measured**: The current Picker/Verilator Python flow provides functional coverage, not RTL line coverage. The GitLink reference mentions high effective line coverage, but that metric is not currently collected in this flow.
+- **Historical stage outputs contain older counts**: Earlier stage artifacts intentionally preserve the exact results from the time each stage ran. Current submission status is represented by README, test points, verification plan, and this refreshed final report stage.
+- **Post-coherence directed closure was not replayed through UCAgent**: DIR-011 through DIR-013 were completed by another agent and are clearly reported as such. They are included in the clean regression and Toffee coverage closure.
+- **Probe data detail remains microarchitecture-sensitive**: Coherence probe hit/miss cmd is covered; first-hit rdata depends on S3 dataWay register timing and is documented as a remaining risk in the coherence stage.

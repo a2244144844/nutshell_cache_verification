@@ -28,16 +28,30 @@ def pin_set(pin, value):
 
 
 class CacheEnv:
-    def __init__(self, dut):
+    def __init__(self, dut, coverage=False):
         self.dut = dut
         self.monitor = CacheMonitor()
         self.scoreboard = CacheScoreboard()
         self.dut.InitClock("clock")
         self.set_defaults()
+        self._coverage = None
+        if coverage:
+            from src.utils.toffee_coverage import CacheCoverage
+            self._coverage = CacheCoverage(self)
 
     @classmethod
-    def create(cls):
-        return cls(load_dut_class()())
+    def create(cls, coverage=False):
+        return cls(load_dut_class()(), coverage=coverage)
+
+    def write_coverage_report(self, path):
+        if self._coverage is None:
+            raise RuntimeError("Coverage not enabled. Use CacheEnv.create(coverage=True).")
+        import json
+        from pathlib import Path
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        data = self._coverage.as_dict()
+        path.write_text(json.dumps(data, indent=2, sort_keys=True), encoding="utf-8")
 
     def finish(self):
         self.dut.Finish()
@@ -99,6 +113,18 @@ class CacheEnv:
             size=pin_get(self.dut.io_out_mem_req_bits_size),
             wmask=pin_get(self.dut.io_out_mem_req_bits_wmask),
             wdata=pin_get(self.dut.io_out_mem_req_bits_wdata),
+            cycle=0,
+        )
+
+    def sample_mmio_request(self):
+        if not pin_get(self.dut.io_mmio_req_valid):
+            return None
+        return sb.MemRequest(
+            addr=pin_get(self.dut.io_mmio_req_bits_addr),
+            cmd=pin_get(self.dut.io_mmio_req_bits_cmd),
+            size=pin_get(self.dut.io_mmio_req_bits_size),
+            wmask=pin_get(self.dut.io_mmio_req_bits_wmask),
+            wdata=pin_get(self.dut.io_mmio_req_bits_wdata),
             cycle=0,
         )
 
@@ -198,4 +224,64 @@ class CacheEnv:
 
         raise TimeoutError(
             f"Cache request timed out: cmd={request.cmd}, addr=0x{request.addr:x}, accepted={accepted}"
+        )
+
+    def send_mmio_request(self, request: sb.CpuRequest, *, mmio_resp_data=0, write_resp_ok=True, timeout=200):
+        pin_set(self.dut.io_in_req_bits_addr, request.addr)
+        pin_set(self.dut.io_in_req_bits_size, request.size)
+        pin_set(self.dut.io_in_req_bits_cmd, request.cmd)
+        pin_set(self.dut.io_in_req_bits_wmask, request.wmask)
+        pin_set(self.dut.io_in_req_bits_wdata, request.wdata)
+        pin_set(self.dut.io_in_req_bits_user, request.user)
+        pin_set(self.dut.io_in_req_valid, 1)
+
+        accepted = False
+        mmio_req_seen = False
+        mmio_resp_driven = False
+        response = None
+        mem_requests = []
+
+        for cycle in range(timeout):
+            mem_req_valid = pin_get(self.dut.io_out_mem_req_valid)
+            if mem_req_valid:
+                mem_requests.append(sb.MemRequest(
+                    addr=pin_get(self.dut.io_out_mem_req_bits_addr),
+                    cmd=pin_get(self.dut.io_out_mem_req_bits_cmd),
+                    size=pin_get(self.dut.io_out_mem_req_bits_size),
+                    wmask=pin_get(self.dut.io_out_mem_req_bits_wmask),
+                    wdata=pin_get(self.dut.io_out_mem_req_bits_wdata),
+                    cycle=cycle,
+                ))
+
+            if pin_get(self.dut.io_mmio_req_valid):
+                mmio_req_seen = True
+
+            if mmio_req_seen and not mmio_resp_driven:
+                pin_set(self.dut.io_mmio_resp_valid, 1)
+                pin_set(self.dut.io_mmio_resp_bits_rdata, mmio_resp_data)
+                mmio_resp_driven = True
+            elif mmio_resp_driven:
+                pin_set(self.dut.io_mmio_resp_valid, 0)
+
+            self.step(1)
+
+            if pin_get(self.dut.io_in_req_valid) and pin_get(self.dut.io_in_req_ready) and not accepted:
+                accepted = True
+                pin_set(self.dut.io_in_req_valid, 0)
+
+            if pin_get(self.dut.io_in_resp_valid) and response is None:
+                response = sb.CpuResponse(
+                    cmd=pin_get(self.dut.io_in_resp_bits_cmd),
+                    rdata=pin_get(self.dut.io_in_resp_bits_rdata),
+                    user=pin_get(self.dut.io_in_resp_bits_user),
+                    cycle=cycle,
+                )
+                self.monitor.record_cpu_response(response)
+
+            if response is not None:
+                self.step(1)
+                return response, mem_requests, mmio_req_seen
+
+        raise TimeoutError(
+            f"MMIO request timed out: cmd={request.cmd}, addr=0x{request.addr:x}, accepted={accepted}"
         )

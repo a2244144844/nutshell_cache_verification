@@ -1,0 +1,184 @@
+mission:
+  name: "{DUT} GenSpec 补规范"
+  prompt:
+    system: |
+      你是一名资深芯片验证与体系结构工程师。目标是在不修改 DUT 源码、不扰动现有验证环境的前提下，
+      为 NutShell Cache 生成结构化规格说明、功能检查点文档和 Cache.v 行级追踪映射。
+      所有结论必须尽量引用输入文件路径；不确定的设计意图必须标注为待人工确认。
+      你需要通过 Complete 工具检查当前阶段是否完成，并按阶段推进。遇到 human_check 阶段时，
+      先写出人工审核摘要，再等待人工确认。
+      标签说明：
+        <ref_file>文件路径[:代码行开始-代码行结束]</ref_file>：用于标记文档中引用的文件路径。
+
+mcp_server:
+  init_prompt: >
+    请通过工具`RoleInfo`获取你的角色信息和基本指导，然后完成任务。
+    请使用工具`ReadTextFile`读取文件，用`EditTextFile`创建和编辑文件。
+
+un_write_dirs:
+  - "{DUT}/"
+  - "Guide_Doc/"
+
+template: ""
+
+tui:
+  task_width: 50
+  console_height: 19
+  status_height: 10
+
+stage:
+  - name: collect_existing_assets
+    desc: "收集现有资料并生成 Cache 主规格初稿"
+    task:
+      - "阅读 {DUT}/README.md 以及 {DUT}/docs/ 下所有 Markdown 文档。"
+      - "参考 Guide_Doc/dut_spec_template.md 的二级标题结构，在 {OUT}/{DUT}_spec.md 生成主规格初稿。"
+      - "主规格必须覆盖：DUT 边界、Picker/Toffee 验证背景、顶层 ready/valid 接口、CPU 请求响应、内存 refill/writeback、MMIO、coherence probe、flush/empty、现有覆盖率和已知风险。"
+      - "所有文件引用使用 <ref_file>relative/path[:line-line]</ref_file> 标记。"
+      - "不得修改 {DUT}/ 目录下任何文件。"
+    reference_files:
+      - "{DUT}/README.md"
+      - "{DUT}/docs/*.md"
+      - "Guide_Doc/dut_spec_template.md"
+    output_files:
+      - "{OUT}/{DUT}_spec.md"
+    checker:
+      - name: markdown_file_check
+        clss: "MarkDownHeadChecker"
+        args:
+          file_path: "{OUT}/{DUT}_spec.md"
+          template_file: "Guide_Doc/dut_spec_template.md"
+          header_levels: 2
+
+  - name: augment_with_code
+    desc: "结合 Cache RTL 源码补全规格细节[{COMPLETE_PROGRESS}]"
+    task:
+      - "逐个分析 {DUT}/ 下的 RTL/config 文件。"
+      - "重点从 Cache.v 提取接口定义、状态机、关键路径、参数/存储结构、复位行为和可验证观察点。"
+      - "将源码分析结果补充进 {OUT}/{DUT}_spec.md；如果存在待确认设计意图，在对应章节标注。"
+      - "必须覆盖 CacheStage1、CacheStage2、CacheStage3、顶层 Cache、meta/data SRAM、dirty writeback、clean refill、MMIO bypass、coherence probe 和 flush。"
+      - "当前任务：根据 `{CURRENT_FILE_NAME}` 更新 {OUT}/{DUT}_spec.md；完成当前文件后调用 Check 进入下一个源文件，直到全部源文件完成。"
+    output_files:
+      - "{OUT}/{DUT}_spec.md"
+    checker:
+      - name: walk_rtl_source_files
+        clss: "WalkFilesOneByOne"
+        args:
+          name: "cache_rtl_source_analysis"
+          file_pattern:
+            - "{DUT}/**/*.v"
+            - "{DUT}/**/*.sv"
+            - "{DUT}/**/*.scala"
+            - "{DUT}/**/*.yaml"
+
+  - name: complete_subspecs
+    desc: "生成或确认 Cache 子规范"
+    task:
+      - "如果 Cache.v 中的子模块复杂度需要独立说明，请在 {OUT}/{DUT}/ 下创建子规范文档。"
+      - "建议子规范：CacheStage1、CacheStage2、CacheStage3、MetaDataArray、DataArray、Replacement。"
+      - "若不创建子规范，也必须在 {OUT}/{DUT}_spec.md 的子组件描述中说明原因。"
+      - "子规范如果创建，必须参考 Guide_Doc/dut_spec_template.md 保持二级标题结构。"
+    reference_files:
+      - "{OUT}/{DUT}_spec.md"
+      - "Guide_Doc/dut_spec_template.md"
+    output_files:
+      - "{OUT}/{DUT}/"
+    checker:
+      - name: check_component_spec_files
+        clss: "BatchMarkDownHeadChecker"
+        args:
+          name: "cache_component_spec_check"
+          file_pattern: "{OUT}/{DUT}/*_spec.md"
+          template_file: "Guide_Doc/dut_spec_template.md"
+          header_levels: 2
+          mini_inputs: 0
+
+  - name: human_check
+    desc: "人工检查 Cache 规格完整性与准确性"
+    task:
+      - "全面检查 {OUT}/{DUT}_spec.md 和可选子规范，确认接口、状态机、关键路径、覆盖建议与 Cache.v 逻辑一致。"
+      - "把审核摘要写入 {OUT}/{DUT}_spec_summary.md。摘要必须列出：确认通过项、待人工复核项、未覆盖风险、后续补充建议。"
+      - "等待人工确认后再继续后续功能规格分析。"
+    reference_files:
+      - "{OUT}/{DUT}_spec.md"
+      - "{OUT}/{DUT}/*_spec.md"
+    output_files:
+      - "{OUT}/{DUT}_spec_summary.md"
+    checker:
+      - name: human_check_spec
+        clss: "HumanChecker"
+
+  - name: functional_specification_analysis
+    desc: "从 Cache 规格提炼 FG/FC/CK 功能检查点"
+    task:
+      - "读取 {OUT}/{DUT}_spec.md、可选子规范和 {DUT}/docs/Cache_functions_and_checks.md。"
+      - "在 {OUT}/{DUT}_functions_and_checks.md 中生成结构化 FG/FC/CK。"
+      - "必须包含 <FG-API> 分组，并覆盖读、写、命中、缺失/refill、dirty writeback、clean eviction、MMIO、coherence probe、flush/backpressure、reset/ready、覆盖率风险。"
+      - "标签必须独立成行，命名只使用字母数字和连字符。"
+    reference_files:
+      - "{OUT}/{DUT}_spec.md"
+      - "{OUT}/{DUT}/*_spec.md"
+      - "{DUT}/docs/Cache_functions_and_checks.md"
+      - "Guide_Doc/dut_functions_and_checks.md"
+    output_files:
+      - "{OUT}/{DUT}_functions_and_checks.md"
+    stage:
+      - name: dut_function_grouping
+        desc: "DUT 功能分组与层次划分{COUNT_FG}"
+        task:
+          - "基于 Cache 功能创建 FG 分组，必须包含 <FG-API>。"
+          - "创建 {OUT}/{DUT}_functions_and_checks.md 文档框架。"
+        checker:
+          - name: group_structure_check
+            clss: "UnityChipCheckerLabelStructure"
+            args:
+              doc_file: "{OUT}/{DUT}_functions_and_checks.md"
+              leaf_node: "FG"
+      - name: function_point_definition
+        desc: "具体功能点识别与定义{COUNT_FC}"
+        task:
+          - "在每个 FG 分组内定义可测试的 FC 功能点。"
+          - "功能点要能映射到现有或计划中的 Cache 测试。"
+        checker:
+          - name: function_point_check
+            clss: "UnityChipCheckerLabelStructure"
+            args:
+              doc_file: "{OUT}/{DUT}_functions_and_checks.md"
+              leaf_node: "FC"
+      - name: check_point_design
+        desc: "检测点设计与定义{COUNT_CK}"
+        task:
+          - "为每个 FC 设计 CK 检测点。"
+          - "CK 要可观测、可测试，并尽量对应 Cache.v 关键行段或现有测试证据。"
+        checker:
+          - name: check_point_check
+            clss: "UnityChipCheckerLabelStructure"
+            args:
+              doc_file: "{OUT}/{DUT}_functions_and_checks.md"
+              leaf_node: "CK"
+              data_key: "COVER_GROUP_DOC_CK_LIST"
+              need_human_check: false
+
+  - name: ref_function_line_map_generation
+    desc: "生成 CK 到 Cache.v 行映射"
+    task:
+      - "读取 {OUT}/{DUT}_functions_and_checks.md 中的 CK 列表。"
+      - "读取 {DUT}/Cache.v，按 Guide_Doc/dut_line_func_map.md 格式生成 {OUT}/{DUT}_line_func_map.md。"
+      - "映射目标是 Cache.v 行号。每个正式映射必须使用 FG/FC/CK 标签路径；无法归入正式 CK 的注释、版权、工具生成、不可达或非验证范围行，可用 IGNORE/FC-*/CK-* 并写明原因。"
+      - "优先把核心可验证逻辑映射到正式 CK：顶层接口、S1/S2/S3 pipeline、refill、writeback、MMIO、probe、flush、reset sweep、SRAM 读写、replacement。"
+      - "Check 通过后，写入 {OUT}/{DUT}_line_map_analysis.md，总结映射策略、主要 CK 覆盖区域和待后续人工精化的行段。"
+    reference_files:
+      - "{OUT}/{DUT}_functions_and_checks.md"
+      - "{DUT}/Cache.v"
+      - "Guide_Doc/dut_line_func_map.md"
+    output_files:
+      - "{OUT}/{DUT}_line_func_map.md"
+      - "{OUT}/{DUT}_line_map_analysis.md"
+    checker:
+      - name: file_line_map_checker
+        clss: "FileLineMapChecker"
+        args:
+          source_file: "{DUT}/Cache.v"
+          func_check_file: "{OUT}/{DUT}_functions_and_checks.md"
+          map_file: "{OUT}/{DUT}_line_func_map.md"
+          max_example_lines: 20
+          must_has_no_miss_match: false

@@ -1,12 +1,12 @@
-Coverage data file: `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/build/cache_random_coverage.json`
-
 # Coverage Report
 
-Seed: `7`
-Transactions: `18`
-
-## Commands
-- `scripts/collect_coverage.sh 7 18`
+- HTML report: `build/reports/cache_coverage.html`
+- **Line coverage (RTL)**: 1353/1355 lines (99.9%)
+- Random seed: `7`
+- Random steps: `18`
+- **Toffee funcov**: 12 groups, 31 points, 37 bins
+- **Marked Points**: 31/31 (100%)
+- **Covered Bins**: 37/37 (100%)
 
 ## Cmd Type
 
@@ -55,8 +55,36 @@ Transactions: `18`
 | `read_hit` | 3 | covered |
 | `write_hit` | 10 | covered |
 | `dirty_miss_writeback_refill` | 1 | covered |
+| `write_miss_clean_refill` | 0 | gap |
+| `write_miss_dirty_refill` | 0 | gap |
+
+## Write Miss
+
+| Bin | Count | Status |
+| --- | ---: | --- |
+| `clean` | 0 | gap |
+| `dirty` | 0 | gap |
+| `none` | 18 | covered |
+
+## Toffee Group Summary
+
+| Group | Points | Bins | Status |
+| --- | ---: | ---: | --- |
+| `cache_addr_class` | 1/1 | 2/2 | covered |
+| `cache_backpressure` | 2/2 | 2/2 | covered |
+| `cache_clean_eviction` | 1/1 | 1/1 | covered |
+| `cache_cmd_type` | 2/2 | 3/3 | covered |
+| `cache_coherence_probe` | 1/1 | 2/2 | covered |
+| `cache_flush` | 1/1 | 2/2 | covered |
+| `cache_hit_miss` | 2/2 | 2/2 | covered |
+| `cache_refill_path` | 3/3 | 4/4 | covered |
+| `cache_req_accepted` | 1/1 | 1/1 | covered |
+| `cache_word_offset` | 8/8 | 8/8 | covered |
+| `cache_write_mask_class` | 7/7 | 7/7 | covered |
+| `cache_write_miss` | 2/2 | 3/3 | covered |
 
 ## Gaps And Next Actions
 
-- No immediate functional-coverage gaps remain in the current bootstrap set.
+- No functional-coverage gaps remain in the Toffee model.
+- Legacy random-collector write-miss bins may show gaps because the constrained-random bootstrap focuses on write hits; directed tests close these paths in the Toffee model.
 

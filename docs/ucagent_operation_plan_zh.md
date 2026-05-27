@@ -4,24 +4,23 @@
 
 ## 当前评估
 
-当前 Cache 验证工作区具有真实的可执行进展：Picker 导出工作正常，Python 测试驱动 DUT，directed/corner/random 测试通过，VCD 波形已生成。工作流现已拥有 UCAgent 驱动的 audit、backpressure、CRV/coverage 和 dirty-writeback 闭环 stage，但完整验证实现尚未端到端地通过 stage 编排。
+当前 Cache 验证工作区具有真实的可执行进展：Picker 导出工作正常，Python 测试驱动 DUT，directed/corner/random 测试通过，bug-injection 证据存在，VCD 波形已生成。工作流现已拥有 UCAgent 驱动的 audit、backpressure、CRV/coverage、dirty-writeback 闭环、bug-injection、final-report、flush 和 coherence-probe stage。Post-coherence 的 write miss 与 eviction closure 由其他 agent 完成，并记录在协同报告中。
 
 目前真实状况：
 
 - `instruction.md` 中已单独验证 UCAgent/Codex 集成。
-- Cache 专属的 `cache_regression_audit`、`backpressure_directed_tests`、`crv_coverage_bootstrap` 和 `dirty_writeback_coverage_closure` 四个 stage 已使用 `configs/ucagent_track1_cache.yaml` 通过 UCAgent 运行。
-- 这些 stage 生成了 `docs/ucagent_output/stage_audit.md`、`docs/ucagent_output/backpressure_stage.md`、`docs/ucagent_output/crv_coverage_stage.md` 和 `docs/ucagent_output/dirty_writeback_stage.md`，并记录了回归或覆盖率通过。
+- Cache 专属的 `cache_regression_audit`、`backpressure_directed_tests`、`crv_coverage_bootstrap`、`dirty_writeback_coverage_closure`、`bug_injection_evidence`、`final_report_package`、`flush_directed_test` 和 `coherence_probe_directed_test` 八个 stage 已使用 `configs/ucagent_track1_cache.yaml` 通过 UCAgent 运行。
+- 这些 stage 生成了 `docs/ucagent_output/stage_audit.md`、`docs/ucagent_output/backpressure_stage.md`、`docs/ucagent_output/crv_coverage_stage.md`、`docs/ucagent_output/dirty_writeback_stage.md`、`docs/ucagent_output/bug_injection_stage.md`、`docs/ucagent_output/final_report_stage.md`、`docs/ucagent_output/flush_stage.md` 和 `docs/ucagent_output/coherence_probe_stage.md`，并记录了回归、覆盖率、注入失败或定向测试证据。
 - 本 Cache 工作区由 Codex 在共享仓库中实现，人工审查和决策记录在 `docs/ai_collaboration_report.md`。
 - 当前 Cache 测试可通过 shell 脚本复现。
 
 强烈 Track1 提交仍欠缺的：
 
 - 早期技术实现 stage 最初并非通过 UCAgent 启动。
-- Bug-injection 仍需直接的 UCAgent stage 证据。
-- 下一个实现 stage 已列入 UCAgent config，应通过同一 `ucagent <workspace> Cache --backend codex` 路径执行。
+- Post-coherence 的 write miss 和 eviction closure 由其他 agent 完成；除非后续通过 UCAgent stage 重放，否则报告中必须如此标注。
 - 报告必须区分 UCAgent 编排的工作和直接 Codex 辅助的工作。
 
-因此，下一步文档和工作流目标是使 UCAgent 成为验证流程的可视化编排者，同时保持 Codex 作为后端实现 agent。
+因此，当前文档目标是保持 UCAgent 作为 stage 工作的可视化编排者，同时清楚标注未通过 UCAgent 重放的直接 Codex/Claude-agent 工作。
 
 ## UCAgent 在本项目中的角色
 
@@ -64,6 +63,9 @@ Cache 赛题任务应表示为以下 UCAgent stage。
 | 7 | `dirty_writeback_coverage_closure` | 添加 dirty-victim writeback/refill 覆盖率闭环。 | `tests/directed/test_dirty_writeback.py`、`docs/coverage_report.md`、`docs/ucagent_output/dirty_writeback_stage.md` |
 | 8 | `bug_injection_evidence` | 添加故障注入测试和 bug 追踪证据。 | `tests/injected_bug/`、`docs/bug_tracking.md`、`docs/ucagent_output/bug_injection_stage.md` |
 | 9 | `final_report_package` | 汇总最终报告和可复现性说明。 | `README.md`、`docs/ai_collaboration_report.md`、`top.md` |
+| 10 | `flush_directed_test` | 实现 flush 行为定向测试（DIR-007）。 | `tests/directed/test_flush_behavior.py`、`docs/test_points.md`、`docs/ucagent_output/flush_stage.md` |
+| 11 | `coherence_probe_directed_test` | 实现 coherence probe 命中/缺失定向测试（DIR-008）。 | `tests/directed/test_coherence_probe.py`、`docs/test_points.md`、`docs/ucagent_output/coherence_probe_stage.md` |
+| 12 | `final_submission_sync` | 在 post-final directed closure 后刷新全部提交文档。 | `README.md`、`docs/test_points.md`、`docs/verification_plan.md`、`docs/ai_collaboration_report.md`、`docs/ucagent_output/final_report_stage.md`、`top.md` |
 
 ## UCAgent 运行模板
 
@@ -86,7 +88,7 @@ ucagent /Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache Cache \
   -s
 ```
 
-初始的 `configs/ucagent_track1_cache.yaml` 文件是一个 audit stage 配置。它通过 UCAgent 验证了已有回归，现已扩展为完整的五阶段比赛流程。
+初始的 `configs/ucagent_track1_cache.yaml` 文件是一个 audit stage 配置。它通过 UCAgent 验证了已有回归，现已扩展为多阶段比赛流程。
 
 初始 audit 结果：
 
@@ -114,6 +116,12 @@ scripts/run_ucagent_stage.sh 3
 
 # Stage 4：bug-injection 证据
 scripts/run_ucagent_stage.sh 4
+
+# Stage 6：coherence probe 定向测试
+scripts/run_ucagent_stage.sh 6
+
+# Stage 7：flush 定向测试
+scripts/run_ucagent_stage.sh 7
 ```
 
 辅助脚本使用 `configs/ucagent_track1_cache.yaml`，启动 UCAgent MCP server，使用 Codex 作为后端，并保持 UCAgent 对每次单 stage 运行调用 `SetCurrentStageJournal`、`Complete` 然后 `Exit` 的要求。
@@ -133,8 +141,11 @@ scripts/run_ucagent_stage.sh 4
 - Stage 2：`crv_coverage_bootstrap`
 - Stage 3：`dirty_writeback_coverage_closure`
 - Stage 4：`bug_injection_evidence`
+- Stage 5：`final_report_package`
+- Stage 6：`coherence_probe_directed_test`
+- Stage 7：`flush_directed_test`
 
-这足以使后续实现工作保持在 UCAgent 通道上而非直接 Codex 执行。Stage 0 至 4 已通过此通道执行。
+这足以使后续实现工作保持在 UCAgent 通道上而非直接执行。Stage 0 至 7 已通过此通道执行（Stage 6/7 使用 Claude Code 后端）。
 
 当前已执行 stage：
 
@@ -143,8 +154,11 @@ scripts/run_ucagent_stage.sh 4
 - Stage 2 `crv_coverage_bootstrap`：完成。
 - Stage 3 `dirty_writeback_coverage_closure`：完成。
 - Stage 4 `bug_injection_evidence`：完成。
+- Stage 5 `final_report_package`：完成。
+- Stage 6 `coherence_probe_directed_test`：完成（Claude Code 后端）。
+- Stage 7 `flush_directed_test`：完成（Claude Code 后端）。
 
-下一项预期工作是 final report package 和可复现性清理。
+当前预期工作是最终提交同步：将所有顶层文档和中文镜像刷新到最新 `26 passed` 回归结果，并清楚区分 UCAgent-run stage 与 post-coherence 直接 agent 工作。
 
 ## 报告规则
 

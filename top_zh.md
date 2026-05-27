@@ -1,6 +1,6 @@
 # Markdown 索引
 
-日期：2026-05-26
+日期：2026-05-27
 
 本文件是 Track1 NutShell Cache 验证任务所维护 Markdown 文档的顶层索引，记录每份文档的角色和路径，方便后续工作步骤从正确的源文件开始。
 
@@ -28,7 +28,7 @@
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/interface_map.md` | Cache DUT 引脚/协议映射、SimpleBus 命令常量及首次观测到的传输行为。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/test_points.md` | 已实现的 smoke、directed、corner 和 CRV 检查点，以及剩余定向测试和覆盖率候选点。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/bug_tracking.md` | Bug-injection 证据记录。说明 `BUG-001` 的触发条件、scoreboard 检出路径、失败证据和关闭注入后的恢复路径。 |
-| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/configs/ucagent_track1_cache.yaml` | Cache 专属 UCAgent 配置文件。包含 audit、backpressure、CRV/coverage、dirty-writeback 闭环和 bug-injection 五个 stage，后续工作均应通过 UCAgent 运行。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/configs/ucagent_track1_cache.yaml` | Cache 专属 UCAgent 配置文件。包含 audit、backpressure、CRV/coverage、dirty-writeback 闭环、bug-injection、final-report、flush 和 coherence-probe stage。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/stage_audit.md` | 首个 Cache 专属 UCAgent stage 输出。记录了检查的文件、回归命令、警告和 `4 passed` audit 结果。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/backpressure_stage.md` | UCAgent backpressure stage 输出。记录了变更的文件、回归命令、`6 passed` 结果和残留风险。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/coverage_report.md` | CRV stage 2 生成的功能覆盖率引导报告，包含已观测仓和剩余闭环缺口。 |
@@ -36,10 +36,31 @@
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/dirty_writeback_stage.md` | UCAgent dirty-writeback 闭环 stage 输出。记录了变更文件、命令、精确通过/失败结果、覆盖率增量和残留风险。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/bug_injection_stage.md` | UCAgent bug-injection stage 输出。记录变更文件、预期失败命令、恢复命令、干净回归结果和残留风险。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/final_report_stage.md` | UCAgent 最终报告打包 stage 输出。记录审查的文件、运行的命令、精确结果、提交检查清单状态和残留风险。 |
-| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/scripts/run_ucagent_stage.sh` | 通过 `--force-stage-index` 运行指定 UCAgent stage 的辅助脚本；1 对应 backpressure，2 对应 CRV/coverage，3 对应 dirty-writeback 闭环，4 对应 bug injection。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/flush_stage.md` | UCAgent flush 行为 stage 输出（DIR-007）。记录文件变更、命令、pass/fail 结果、D-cache io_flush 约束及剩余风险。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/coherence_probe_stage.md` | UCAgent coherence-probe stage 输出（DIR-008）。记录文件变更、命令、pass/fail 结果、probe pipeline 说明和剩余风险。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/genspec_cache.yaml` | GenSpec 根目录配置副本，用于运行官方六阶段 Cache 规范生成流程。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/genspec_workspace/genspec_cache.yaml` | UCAgent 实际消费的 overlay GenSpec 配置。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/genspec_workspace/Cache/README.md` | Overlay 工作区说明，记录提供给 UCAgent GenSpec 的 RTL 和参考文档包。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/genspec_full_stage.md` | UCAgent GenSpec 完整阶段产物，记录命令流程、human_check 处理、检查器结果和生成的规范文件。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/scripts/run_ucagent_stage.sh` | 通过 `--force-stage-index` 运行指定 UCAgent stage 的辅助脚本；stage index 以 `configs/ucagent_track1_cache.yaml` 为准。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/scripts/reproduce.sh` | 一键复现入口。运行正常回归、覆盖率收集、预期失败 bug 注入和 bug 恢复路径。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/scripts/run_bug_injection.sh` | 受控 bug-injection harness 的包装脚本，支持 `--disable-bug` 恢复模式。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/scripts/clean_generated.sh` | 清理生成的 build、Python cache、本地波形和 pytest cache 等产物。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/README.md` | 模板对齐的 Cache unity-test 整合交付物索引。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_basic_info.md` | 整合后的 DUT 身份、源码边界、接口概要和工具流程报告。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_verification_needs_and_plan.md` | 整合后的验证目标、计划、stage 证据和退出标准。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_spec.md` | GenSpec 根据 `Cache.v` 和既有项目文档生成的 Cache 主规范。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache/` | GenSpec 子规范目录，包含 CacheStage1、CacheStage2、CacheStage3、MetaDataArray、DataArray 和 Replacement。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_spec_summary.md` | GenSpec human_check 阶段生成的人工审查摘要。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_functions_and_checks.md` | 整合后的 smoke、directed、corner、random、scoreboard 和 coverage 检查矩阵。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_line_func_map.md` | GenSpec CK 到 `Cache.v` 行号的映射，已通过 `FileLineMapChecker`。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_line_map_analysis.md` | 行映射分组和生成器样板忽略策略的审查说明。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_line_coverage_analysis.md` | 整合后的覆盖率结果、Toffee 功能覆盖率和 RTL line coverage 限制说明。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_bug_analysis.md` | 整合后的 bug-injection 与 RTL bug 证据摘要。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_test_summary.md` | 整合后的最终测试结果、可复现性、UCAgent 证据和提交说明。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/tests/Cache_api.py` | 标准 UCAgent API 薄包装，暴露 `create_dut`、pytest fixtures 和 `api_cache_*` 函数，内部调用 `src/env/cache_env.py`。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/tests/Cache_function_coverage_def.py` | 标准 UCAgent 覆盖率薄包装，暴露 `get_coverage_groups(dut)`，内部调用 `src/utils/toffee_coverage.py`。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/uc_test_report/README.md` | 模板风格测试报告索引，指向生成的 coverage HTML 和 Markdown 报告。 |
 
 ## 中文镜像文档
 
@@ -64,6 +85,9 @@
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/bug_injection_stage_zh.md` | Bug-injection stage UCAgent 输出的中文镜像。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/bug_tracking_zh.md` | Bug 追踪证据记录的中文镜像。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/final_report_stage_zh.md` | 最终报告打包 stage UCAgent 输出的中文镜像。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/flush_stage_zh.md` | Flush stage UCAgent 输出的中文镜像。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/coherence_probe_stage_zh.md` | Coherence-probe stage UCAgent 输出的中文镜像。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/genspec_full_stage_zh.md` | GenSpec 完整阶段 UCAgent 输出的中文镜像。 |
 
 ## 更新规则
 

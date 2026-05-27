@@ -7,11 +7,7 @@ REPO_ROOT="$(cd "$ROOT_DIR/../.." && pwd)"
 
 "$SCRIPT_DIR/export_cache_dut.sh"
 
-if [ -f "$REPO_ROOT/.venv/bin/activate" ]; then
-  source "$REPO_ROOT/.venv/bin/activate"
-fi
-
 source "$SCRIPT_DIR/env.sh"
 export PYTHONPATH="$ROOT_DIR:${PYTHONPATH:-}"
 
-python -m pytest "$ROOT_DIR/tests/smoke" "$ROOT_DIR/tests/directed" "$ROOT_DIR/tests/corner" -q
+"$REPO_ROOT/.venv/bin/python" -m pytest "$ROOT_DIR/tests/smoke" "$ROOT_DIR/tests/directed" "$ROOT_DIR/tests/corner" -q

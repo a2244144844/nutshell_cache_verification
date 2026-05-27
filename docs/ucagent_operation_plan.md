@@ -4,24 +4,25 @@ Date: 2026-05-26
 
 ## Current Assessment
 
-The current Cache verification workspace has real executable progress: Picker export works, Python tests drive the DUT, directed/corner/random tests pass, bug-injection evidence exists, and a VCD waveform has been generated. The workflow now has UCAgent-driven audit, backpressure, CRV/coverage, dirty-writeback closure, and bug-injection evidence stages; final packaging remains.
+The current Cache verification workspace has real executable progress: Picker export works, Python tests drive the DUT, directed/corner/random tests pass, bug-injection evidence exists, and a VCD waveform has been generated. The workflow now has UCAgent-driven audit, backpressure, CRV/coverage, dirty-writeback closure, bug-injection evidence, final-report packaging, flush, coherence-probe, and a supplemental write-miss / eviction replay stage. The original write-miss and eviction implementation history remains recorded in the collaboration report as direct-agent work.
 
 What is currently true:
 
 - UCAgent/Codex integration has been verified separately in `instruction.md`.
-- Cache-specific `cache_regression_audit`, `backpressure_directed_tests`, `crv_coverage_bootstrap`, `dirty_writeback_coverage_closure`, and `bug_injection_evidence` stages have run through UCAgent using `configs/ucagent_track1_cache.yaml`.
-- Those stages generated `docs/ucagent_output/stage_audit.md`, `docs/ucagent_output/backpressure_stage.md`, `docs/ucagent_output/crv_coverage_stage.md`, `docs/ucagent_output/dirty_writeback_stage.md`, and `docs/ucagent_output/bug_injection_stage.md` and recorded regression, coverage, or injected-failure evidence.
+- Cache-specific `cache_regression_audit`, `backpressure_directed_tests`, `crv_coverage_bootstrap`, `dirty_writeback_coverage_closure`, `bug_injection_evidence`, `final_report_package`, `flush_directed_test`, and `coherence_probe_directed_test` stages have run through UCAgent using `configs/ucagent_track1_cache.yaml`.
+- A supplemental replay artifact, `docs/ucagent_output/write_miss_eviction_replay_stage.md`, records the 2026-05-27 UCAgent replay of DIR-011 through DIR-013.
+- Those stages generated `docs/ucagent_output/stage_audit.md`, `docs/ucagent_output/backpressure_stage.md`, `docs/ucagent_output/crv_coverage_stage.md`, `docs/ucagent_output/dirty_writeback_stage.md`, `docs/ucagent_output/bug_injection_stage.md`, `docs/ucagent_output/final_report_stage.md`, `docs/ucagent_output/flush_stage.md`, and `docs/ucagent_output/coherence_probe_stage.md` and recorded regression, coverage, injected-failure, or directed-test evidence.
 - This Cache workspace was implemented by Codex in the shared repository, with human review and decisions recorded in `docs/ai_collaboration_report.md`.
 - The current Cache tests are reproducible through shell scripts.
 
 What is still missing for a strong Track1 submission:
 
 - Earlier technical implementation stages were not originally launched through UCAgent.
-- Final report packaging still needs a dedicated review pass.
-- Any re-run of implementation stages should continue through the same `ucagent <workspace> Cache --backend codex` path.
+- Post-coherence write miss and eviction closure were performed by another agent and must be reported as such unless later replayed through a UCAgent stage. That replay now exists in `docs/ucagent_output/write_miss_eviction_replay_stage.md`, while the original implementation history remains direct-agent work.
+- Any re-run of implementation stages should continue through the same `ucagent <workspace> Cache --backend codex` or approved UCAgent/Claude Code path.
 - Reports must distinguish UCAgent-orchestrated work from direct Codex-assisted work.
 
-Therefore, the next documentation and workflow goal is to make UCAgent the visible orchestrator of the verification process, while keeping Codex as the backend implementation agent.
+Therefore, the documentation goal is to keep UCAgent as the visible orchestrator of stage work, while clearly labeling any direct Codex/Claude-agent work that was not replayed through UCAgent.
 
 ## UCAgent Role In This Project
 
@@ -64,6 +65,13 @@ The Cache competition task should be represented as these UCAgent stages.
 | 7 | `dirty_writeback_coverage_closure` | Add dirty-victim writeback/refill coverage closure. | `tests/directed/test_dirty_writeback.py`, `docs/coverage_report.md`, `docs/ucagent_output/dirty_writeback_stage.md` |
 | 8 | `bug_injection_evidence` | Add injected-bug tests and bug tracking evidence. | `tests/injected_bug/`, `docs/bug_tracking.md`, `docs/ucagent_output/bug_injection_stage.md` |
 | 9 | `final_report_package` | Assemble final report and reproducibility instructions. | `README.md`, `docs/ai_collaboration_report.md`, `top.md` |
+| 10 | `flush_directed_test` | Add flush behavior directed tests. | `tests/directed/test_flush_behavior.py`, `docs/ucagent_output/flush_stage.md` |
+| 11 | `coherence_probe_directed_test` | Add coherence probe hit/miss directed tests. | `tests/directed/test_coherence_probe.py`, `docs/ucagent_output/coherence_probe_stage.md` |
+| 12 | `final_submission_sync` | Refresh all docs after post-final directed closure. | `README.md`, `docs/test_points.md`, `docs/verification_plan.md`, `docs/ai_collaboration_report.md`, `docs/ucagent_output/final_report_stage.md`, `top.md` |
+
+Supplemental replay artifact:
+
+- `docs/ucagent_output/write_miss_eviction_replay_stage.md` records the UCAgent replay of DIR-011 through DIR-013 and preserves the original direct-agent implementation history.
 
 ## UCAgent Run Template
 
@@ -114,6 +122,12 @@ scripts/run_ucagent_stage.sh 3
 
 # Stage 4: bug-injection evidence
 scripts/run_ucagent_stage.sh 4
+
+# Stage 6: coherence probe directed test
+scripts/run_ucagent_stage.sh 6
+
+# Stage 7: flush directed test
+scripts/run_ucagent_stage.sh 7
 ```
 
 The helper uses `configs/ucagent_track1_cache.yaml`, starts the UCAgent MCP server, uses Codex as backend, and preserves the UCAgent requirement to call `SetCurrentStageJournal`, `Complete`, and then `Exit` for one-stage-at-a-time runs.
@@ -133,8 +147,12 @@ Configuration check:
 - Stage 2: `crv_coverage_bootstrap`
 - Stage 3: `dirty_writeback_coverage_closure`
 - Stage 4: `bug_injection_evidence`
+- Stage 5: `final_report_package`
+- Stage 6: `coherence_probe_directed_test`
+- Stage 7: `flush_directed_test`
 
-This is enough to keep implementation work on the UCAgent channel instead of direct Codex execution. Stages 0 through 4 have now been exercised through this channel.
+This is enough to keep implementation work on the UCAgent channel instead of direct Codex execution. Stages 0 through 7 have now been exercised through this channel.
+The supplemental DIR-011 through DIR-013 replay artifact is also recorded, but it is not part of the primary config stage list.
 
 Current exercised stages:
 
@@ -143,8 +161,12 @@ Current exercised stages:
 - Stage 2 `crv_coverage_bootstrap`: complete.
 - Stage 3 `dirty_writeback_coverage_closure`: complete.
 - Stage 4 `bug_injection_evidence`: complete.
+- Stage 5 `final_report_package`: complete.
+- Stage 6 `coherence_probe_directed_test`: complete (via Claude Code backend).
+- Stage 7 `flush_directed_test`: complete (via Claude Code backend).
+- Supplemental replay `write_miss_eviction_replay`: complete (UCAgent replay artifact; original DIR-011 through DIR-013 implementation remains direct-agent work).
 
-The next intended work item is the final report package and reproducibility cleanup. Note that the previous stage 3 run advanced into the then-next stage after `Complete` despite the config instruction to call `Exit`; the overrun was stopped and out-of-scope bug-injection drafts were removed before Stage 4 was run deliberately.
+The current intended work item is final submission synchronization: update all top-level and mirror documents to the latest `26 passed` regression result and clearly distinguish UCAgent-run stages from post-coherence direct agent work.
 
 ## Reporting Rule
 

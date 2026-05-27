@@ -20,4 +20,5 @@ picker export "$ROOT_DIR/rtl/dut/Cache.v" \
   -w cache.vcd \
   --sim verilator \
   --tdir "$OUT_DIR" \
-  --autobuild true
+  --autobuild true \
+  -c

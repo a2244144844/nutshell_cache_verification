@@ -13,7 +13,9 @@ EXPECTED_BINS = {
     "hit_miss_proxy": ("hit", "miss"),
     "write_mask_class": ("none", "byte", "adjacent", "low_half", "high_half", "full", "sparse"),
     "word_offset": tuple(str(i) for i in range(8)),
-    "refill_path": ("clean_miss_refill", "read_hit", "write_hit", "dirty_miss_writeback_refill"),
+    "refill_path": ("clean_miss_refill", "read_hit", "write_hit", "dirty_miss_writeback_refill",
+                     "write_miss_clean_refill", "write_miss_dirty_refill"),
+    "write_miss": ("clean", "dirty", "none"),
 }
 
 
@@ -35,9 +37,10 @@ def classify_write_mask(wmask: int) -> str:
 
 def classify_refill_path(request: sb.CpuRequest, mem_requests) -> str:
     if mem_requests:
-        if any(req.cmd in {sb.WRITE_BURST, sb.WRITE_LAST} for req in mem_requests):
-            return "dirty_miss_writeback_refill"
-        return "clean_miss_refill"
+        has_writeback = any(req.cmd in {sb.WRITE_BURST, sb.WRITE_LAST} for req in mem_requests)
+        if request.cmd == sb.WRITE:
+            return "write_miss_dirty_refill" if has_writeback else "write_miss_clean_refill"
+        return "dirty_miss_writeback_refill" if has_writeback else "clean_miss_refill"
     return "read_hit" if request.cmd == sb.READ else "write_hit"
 
 
@@ -49,12 +52,18 @@ class CacheCoverageCollector:
     def record(self, *, request: sb.CpuRequest, mem_requests, response):
         hit_miss_proxy = "hit" if not mem_requests else "miss"
         refill_path = classify_refill_path(request, mem_requests)
+        has_writeback = any(req.cmd in {sb.WRITE_BURST, sb.WRITE_LAST} for req in mem_requests)
+        if request.cmd == sb.WRITE and mem_requests:
+            write_miss = "dirty" if has_writeback else "clean"
+        else:
+            write_miss = "none"
         entry = {
             "cmd_type": "read" if request.cmd == sb.READ else "write",
             "hit_miss_proxy": hit_miss_proxy,
             "write_mask_class": classify_write_mask(request.wmask),
             "word_offset": str((request.addr >> 3) & 0x7),
             "refill_path": refill_path,
+            "write_miss": write_miss,
             "user": request.user,
             "response_cmd": response.cmd,
         }

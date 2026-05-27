@@ -118,4 +118,4 @@ scripts/export_cache_dut.sh
 scripts/run_regression.sh
 ```
 
-恢复结果：`7 passed in 0.07s`。
+恢复结果：恢复后的 RTL 已纳入最新干净回归，`scripts/run_regression.sh -> 26 passed in 1.34s`。
