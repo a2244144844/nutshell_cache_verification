@@ -1,0 +1,83 @@
+{
+    "config": "<_pytest.config.Config object at 0x1024d0bd0>",
+    "tests": [],
+    "warnings": [
+        "{message : PluggyTeardownRaisedWarning('A plugin raised an exception during an old-style hookwrapper teardown.\\nPlugin: reporter, Hook: pytest_collection\\nUsageError: file or directory not found: ../tests/directed/test_read_burst_hit.py::test_read_burst_hit_returns_8_beats\\nFor more information see https://pluggy.readthedocs.io/en/stable/api_reference.html#pluggy.PluggyTeardownRaisedWarning'), category : 'PluggyTeardownRaisedWarning', filename : '/Users/zzy/Workspace/ucagent/.venv/lib/python3.11/site-packages/_pytest/main.py', lineno : 371, line : None}"
+    ],
+    "session": "<Session  exitstatus=<ExitCode.USAGE_ERROR: 4> testsfailed=0 testscollected=0>",
+    "started": 1779886464.200753,
+    "items": {},
+    "ended": 1779886464.208173,
+    "colors": {
+        "passed": [
+            "#43A047",
+            "#FFFFFF"
+        ],
+        "failed": [
+            "#F44336",
+            "#FFFFFF"
+        ],
+        "error": [
+            "#B71C1C",
+            "#FFFFFF"
+        ],
+        "xfailed": [
+            "#EF9A9A",
+            "#222222"
+        ],
+        "xpassed": [
+            "#A5D6A7",
+            "#222222"
+        ],
+        "skipped": [
+            "#9E9E9E",
+            "#FFFFFF"
+        ],
+        "notrun": [
+            "#9E9E9E",
+            "#FFFFFF"
+        ],
+        "rerun": [
+            "#FBC02D",
+            "#222222"
+        ],
+        "warning": [
+            "#FBC02D",
+            "#222222"
+        ],
+        "green": [
+            "#43A047",
+            "#FFFFFF"
+        ],
+        "red": [
+            "#E53935",
+            "#FFFFFF"
+        ],
+        "yellow": [
+            "#FBC02D",
+            "#222222"
+        ]
+    },
+    "time_format": "%Y-%m-%d %H:%M:%S",
+    "metadata": {},
+    "user": {
+        "name": "Tofee",
+        "email": "-"
+    },
+    "title": "Toffee Test Report",
+    "coverages": {
+        "line": null,
+        "functional": {
+            "groups": [],
+            "group_num_total": 0,
+            "group_num_hints": 0,
+            "point_num_total": 0,
+            "point_num_hints": 0,
+            "bin_num_total": 0,
+            "bin_num_hints": 0,
+            "grate": 100,
+            "has_once": false
+        }
+    },
+    "test_abstract_info": {}
+}

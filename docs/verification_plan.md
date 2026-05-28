@@ -200,8 +200,8 @@ Current result:
 - `tests/directed/test_dirty_writeback.py` closes the dirty-victim writeback/refill gap with a 4-way set conflict and validates the writeback/refill sequence.
 - `docs/coverage_report.md` records the full coverage bootstrap. Covered bins include read/write/probe commands, hit/miss proxy, write-mask classes, all word offsets, coherence probe, clean eviction, and `dirty_miss_writeback_refill`.
 - Toffee functional coverage result: 12 groups, 31 points, 37 bins, all 100% covered.
-- Verilator RTL line coverage: **1344/1366 (98.4%)** after applying waivers for Categories A-G (12 lines). The remaining 22 uncovered lines are documented in `docs/coverage_waiver_rationale.md` as Categories H (internal probe path, 16 lines), I (needFlush, 2 lines), and J (D-cache ports, 4 lines).
-- Line coverage waivers applied via `tests/conftest.py` using `ignore_patterns`: `*Cache_top*` (Picker-generated DPI wrapper) and `Cache.v:138,240-241,263,411,524,877,901,925,949,2267,2418,2861-2862` (12 DUT lines).
+- Verilator RTL line coverage: **1359/1364 (99.6%)** after applying waivers for Categories A-G (12 lines) and Category J (4 lines). The remaining 5 uncovered lines are residual — 4 Category J lines still present in the denominator despite being waived, plus 1 instrumentation artifact.
+- Line coverage waivers applied via `tests/conftest.py` using `ignore_patterns`: `*Cache_top*` (Picker-generated DPI wrapper) and `Cache.v:138,240-241,263,411,420,460,524,877,901,925,949,2267,2276,2316,2418,2861-2862` (16 DUT lines: Categories A-G + Category J).
 - UCAgent stages `crv_coverage_bootstrap` and `dirty_writeback_coverage_closure` record these results in `docs/ucagent_output/crv_coverage_stage.md` and `docs/ucagent_output/dirty_writeback_stage.md`.
 - Current action: keep coverage and final-report documents synchronized with the latest directed closure.
 
@@ -258,4 +258,4 @@ Current result:
 - `scripts/run_bug_injection.sh` wraps the controlled bug-injection harness with `--disable-bug` recovery mode.
 - `README.md`, `docs/ai_collaboration_report.md`, and `docs/coverage_report.md` have been iterated through the UCAgent stages and post-coherence directed-test closure.
 - Final report packaging has been refreshed after the post-final directed tests. `docs/ucagent_output/final_report_stage.md` records the reviewed files, command results, submission checklist, and remaining risks.
-- Latest validation: `scripts/run_directed.sh -> 23 passed in 1.05s`; `scripts/run_regression.sh -> 26 passed in 1.34s`; `scripts/reproduce.sh -> [reproduce] PASS`.
+- Latest validation: `scripts/run_directed.sh -> 26 passed in 5.10s`; `scripts/run_regression.sh -> 30 passed in 5.43s`; `scripts/collect_coverage.sh 7 18 -> 30 passed, RTL line coverage 1359/1364 (99.6%)`; `scripts/reproduce.sh -> [reproduce] PASS`.

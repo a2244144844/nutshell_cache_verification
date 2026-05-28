@@ -28,7 +28,7 @@ def cache_env(toffee_request, request: pytest.FixtureRequest):
     dut = toffee_request.create_dut(load_dut_class(),
         ignore_patterns=[
             "*Cache_top*",
-            "Cache.v:138,240-241,263,411,420,460,513,524,600,602,605,608,610,771-772,800,865,870,877,901,925,949,2267,2276,2316,2418,2861-2862",
+            "Cache.v:138,240-241,263,411,420,460,524,877,901,925,949,2267,2276,2316,2418,2861-2862",
         ])
     env = CacheEnv(dut, coverage=False)
     cov = CacheCoverage(env, step_ris=False)

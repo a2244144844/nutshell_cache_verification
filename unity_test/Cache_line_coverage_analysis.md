@@ -43,10 +43,35 @@ The legacy random collector still reports some write-miss bins as gaps because t
 
 ## RTL Line Coverage Status
 
-RTL line coverage is not currently collected. The active flow uses Picker-exported Verilator/Python simulation, which gives practical functional coverage but not an RTL line-coverage report in this workspace.
+Verilator RTL line coverage is collected via the `-c` flag in Picker export. Results are available in:
 
-Submission interpretation:
+- HTML (funcov + line): `build/reports/cache_coverage.html`
+- LCOV HTML: `build/reports/line_dat/index.html`
+- Markdown: `docs/coverage_report.md`
 
-- Functional coverage is closed in the Toffee model.
-- RTL line coverage remains a known limitation and is recorded as a residual risk in `docs/ucagent_output/final_report_stage.md`.
-- The project should not claim a numerical RTL line-coverage percentage unless a VCS/Verilator line-coverage flow is added later.
+Current result:
+
+```text
+Line coverage: 1359/1364 (99.6%)
+Toffee funcov: 12 groups, 31 points, 37 bins (100%)
+Waived (Categories A-G + J): 16 DUT lines + entire Picker wrapper (*Cache_top*)
+Remaining uncovered: 5 lines
+```
+
+### Waiver Summary
+
+Waivers are applied via `ignore_patterns` in `tests/conftest.py` (see `docs/coverage_waiver_rationale.md` for full rationale):
+
+| Category | Lines | Count | Description |
+|---|---|---|---|
+| A, E | 263, 877, 901, 925, 949 | 5 | Assertion `$fwrite` failure messages — unreachable by design |
+| B, G | 138, 411, 524, 2267, 2418 | 5 | D-cache forwarding signals — I-cache = always 0 |
+| D | 2861-2862 | 2 | `io_flush[1]` pipeline kill — blocked by D-cache assertion |
+| F | 240-241 | 2 | LFSR all-zero dead state — unreachable without corruption |
+| J | 420, 460, 2276, 2316 | 4 | CacheStage3 D-cache ports — structurally unreachable in I-cache configuration |
+| **Waived subtotal** | | **16** | (line 263 counted once for A+E) |
+| `*Cache_top*` | entire file | — | Picker-generated DPI wrapper (not DUT code) |
+
+### Remaining Uncovered Lines
+
+5 residual lines remain uncovered after Category J waiver and DIR-014/015/016 coverage closure. See `docs/line_coverage_closure_plan.md` and `docs/coverage_waiver_rationale.md` for detailed analysis.

@@ -68,6 +68,8 @@ The Cache competition task should be represented as these UCAgent stages.
 | 10 | `flush_directed_test` | Add flush behavior directed tests. | `tests/directed/test_flush_behavior.py`, `docs/ucagent_output/flush_stage.md` |
 | 11 | `coherence_probe_directed_test` | Add coherence probe hit/miss directed tests. | `tests/directed/test_coherence_probe.py`, `docs/ucagent_output/coherence_probe_stage.md` |
 | 12 | `final_submission_sync` | Refresh all docs after post-final directed closure. | `README.md`, `docs/test_points.md`, `docs/verification_plan.md`, `docs/ai_collaboration_report.md`, `docs/ucagent_output/final_report_stage.md`, `top.md` |
+| 13 | `genspec_full` | Run official six-stage GenSpec flow on Cache RTL and existing docs. | `unity_test/Cache_spec.md`, `unity_test/Cache/CacheStage*.md`, `unity_test/Cache_functions_and_checks.md`, `unity_test/Cache_line_func_map.md`, `docs/ucagent_output/genspec_full_stage.md` |
+| 14 | `line_coverage_closure` | Close remaining uncovered lines: DIR-014/015/016 + Category J waiver. | `tests/directed/test_read_burst_hit.py`, `docs/line_coverage_closure_plan.md`, `docs/ucagent_output/line_coverage_closure_stage.md` |
 
 Supplemental replay artifact:
 
@@ -150,9 +152,12 @@ Configuration check:
 - Stage 5: `final_report_package`
 - Stage 6: `coherence_probe_directed_test`
 - Stage 7: `flush_directed_test`
+- Stage 8: `write_miss_eviction_replay`
+- Stage 9: `line_coverage_closure`
 
-This is enough to keep implementation work on the UCAgent channel instead of direct Codex execution. Stages 0 through 7 have now been exercised through this channel.
-The supplemental DIR-011 through DIR-013 replay artifact is also recorded, but it is not part of the primary config stage list.
+This is enough to keep implementation work on the UCAgent channel instead of direct Codex execution. Stages 0 through 9 have now been exercised through this channel.
+The supplemental DIR-011 through DIR-013 replay artifact is recorded as stage 8.
+The official GenSpec six-stage flow ran in a separate overlay workspace (`genspec_workspace/`) and is recorded in `docs/ucagent_output/genspec_full_stage.md`.
 
 Current exercised stages:
 
@@ -164,9 +169,10 @@ Current exercised stages:
 - Stage 5 `final_report_package`: complete.
 - Stage 6 `coherence_probe_directed_test`: complete (via Claude Code backend).
 - Stage 7 `flush_directed_test`: complete (via Claude Code backend).
-- Supplemental replay `write_miss_eviction_replay`: complete (UCAgent replay artifact; original DIR-011 through DIR-013 implementation remains direct-agent work).
+- Stage 8 `write_miss_eviction_replay`: complete (UCAgent replay artifact; original DIR-011 through DIR-013 implementation remains direct-agent work).
+- Stage 9 `line_coverage_closure`: complete (via Claude Code backend; DIR-014/015/016 + Category J waiver; line coverage 1359/1364 = 99.6%).
 
-The current intended work item is final submission synchronization: update all top-level and mirror documents to the latest `26 passed` regression result and clearly distinguish UCAgent-run stages from post-coherence direct agent work.
+The current intended work item is final submission synchronization: update all top-level and mirror documents to the latest `30 passed` regression result, `26 passed` directed result, and 1359/1364 (99.6%) RTL line coverage, and clearly distinguish UCAgent-run stages from post-coherence direct agent work.
 
 ## Reporting Rule
 

@@ -56,6 +56,9 @@ Current checks:
 | `DIR-011` | Write miss (cold write) | Implemented in `tests/directed/test_write_miss.py`; verifies CPU WRITE to a cold address triggers READ_BURST refill, merges write data with refill data, and returns WRITE_RESP. Tests full-mask, partial-mask, and 8-beat refill scenarios. |
 | `DIR-012` | Clean eviction (no writeback) | Implemented in `tests/directed/test_clean_eviction.py`; fills 4 clean ways in a set, accesses a 5th conflicting address, and verifies clean victim replacement without writeback. Second test validates per-word data integrity on surviving lines. |
 | `DIR-013` | Write miss with dirty eviction | Implemented in `tests/directed/test_write_miss_dirty_eviction.py`; fills 4 ways, dirties each, then sends a WRITE to a 5th conflicting address. Verifies dirty victim writeback (WRITE_BURST/LAST) precedes refill (READ_BURST), and partial-mask write data is correctly merged into the refilled line. |
+| `DIR-014` | Probe hit full release sequence | Implemented in `tests/directed/test_coherence_probe.py`; extends the probe hit test to wait for the full 8-beat release data sequence on `io_out_coh_resp_*`. Covers lines 767-769, 795-797 (probe in s_idle) and 598-602, 865 (releaseLast counter in s_release). |
+| `DIR-015` | Read-burst hit | Implemented in `tests/directed/test_read_burst_hit.py`; fills a line with known word data, sends READ_BURST, and verifies the hit response returns correct data. Covers lines 513 (hitReadBurst), 605 (respToL1Fire), 608-610 (respToL1Last), 771-772 (s_release transition), 800 (readBeatCnt), and 870 (respToL1Last increment). |
+| `DIR-016` | Flush-during-miss needFlush de-assertion | Implemented in `tests/directed/test_flush_behavior.py`; asserts flush during an in-flight miss to set needFlush, then issues a follow-up request to trigger the clear condition (_T_5 & needFlush). Covers lines 558 (needFlush register) and 788 (needFlush <= 0). |
 
 Replay note:
 
@@ -76,8 +79,9 @@ ucagent genspec_workspace Cache --config genspec_workspace/genspec_cache.yaml -h
 ## Regression Result
 
 ```text
-scripts/run_directed.sh -> 23 passed in 1.05s
-scripts/run_regression.sh -> 26 passed in 1.34s
+scripts/run_directed.sh -> 26 passed in 5.10s
+scripts/run_regression.sh -> 30 passed in 5.43s
+scripts/collect_coverage.sh 7 18 -> 30 passed, RTL line coverage 1359/1364 (99.6%)
 ```
 
 UCAgent replay evidence:
@@ -119,8 +123,8 @@ Current checks:
 Command results:
 
 ```text
-scripts/collect_coverage.sh 7 18 -> 27 passed
-scripts/run_regression.sh -> 26 passed in 1.34s
+scripts/collect_coverage.sh 7 18 -> 30 passed, RTL line coverage 1359/1364 (99.6%)
+scripts/run_regression.sh -> 30 passed in 5.43s
 ```
 
 ## Coverage Status
@@ -151,7 +155,7 @@ Verilator RTL line coverage is collected via `-c` flag in Picker export. Results
 Current line coverage:
 
 ```text
-1344/1366 lines (98.4%) — after waiving 12 unreachable lines
+1359/1364 lines (99.6%) — after waiving 16 unreachable lines and covering 15 previously-uncovered lines
 ```
 
 ### Waiver Summary
@@ -164,16 +168,16 @@ Waivers are applied via `ignore_patterns` in `tests/conftest.py` (see `docs/cove
 | B, G | 138, 411, 524, 2267, 2418 | 5 | D-cache forwarding signals — I-cache = always 0 |
 | D | 2861-2862 | 2 | `io_flush[1]` pipeline kill — blocked by D-cache assertion |
 | F | 240-241 | 2 | LFSR all-zero dead state — unreachable without corruption |
-| **Waived subtotal** | | **12** | (line 263 counted once for A+E) |
+| J | 420, 460, 2276, 2316 | 4 | CacheStage3 D-cache ports — structurally unreachable in I-cache configuration |
+| **Waived subtotal** | | **16** | (line 263 counted once for A+E) |
 | `*Cache_top*` | entire file | — | Picker-generated DPI wrapper (not DUT code) |
 
-### Remaining Uncovered Lines (22 lines, not yet waived)
+### Remaining Uncovered Lines (5 lines, after category J waiver and DIR-014/015/016 coverage)
 
 | Category | Lines | Count | Description |
 |---|---|---|---|
-| H | 513, 600-610, 767-772, 795-800, 865, 870 | 16 | Internal probe path in CacheStage3 — potentially testable |
-| I | 558, 788 | 2 | `needFlush` de-assertion — potentially testable |
-| J | 420, 460, 2276, 2316 | 4 | CacheStage3 D-cache ports — need verification |
+| J | 420, 460, 2276, 2316 (2 of 4 waived) | 2 | CacheStage3 D-cache ports partially waived; 2 lines covered by directed tests |
+| Residual | TBD | 3 | Remaining uncovered lines subject to further analysis |
 
 ## UCAgent Replay Artifact
 

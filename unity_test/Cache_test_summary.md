@@ -4,9 +4,9 @@
 
 | Command | Result |
 | --- | --- |
-| `scripts/run_directed.sh` | `23 passed in 1.05s` |
-| `scripts/run_regression.sh` | `26 passed in 1.34s` |
-| `scripts/collect_coverage.sh 7 18` | `27 passed` |
+| `scripts/run_directed.sh` | `26 passed in 5.10s` |
+| `scripts/run_regression.sh` | `30 passed in 5.43s` |
+| `scripts/collect_coverage.sh 7 18` | `30 passed, RTL line coverage 1359/1364 (99.6%)` |
 | `scripts/clean_generated.sh && scripts/reproduce.sh` | `PASS` |
 
 ## Test Inventory
@@ -14,11 +14,12 @@
 | Area | Count / Scope |
 | --- | --- |
 | Smoke | Reset, read miss/refill, read hit, write hit, read-after-write |
-| Directed | DIR-001 through DIR-013 documented and implemented |
+| Directed | DIR-001 through DIR-016 documented and implemented |
 | Corner | CPU-response and memory-request backpressure |
 | Random | Deterministic constrained random read/write bootstrap |
 | Bug evidence | Reference-model corruption and RTL dirty-writeback bypass |
 | Functional coverage | Toffee model: 12 groups, 31 points, 37 bins, 100% covered |
+| RTL line coverage | Verilator: 1359/1364 lines (99.6%), 16 lines waived (Categories A-G + J) |
 
 ## UCAgent Evidence
 
@@ -32,6 +33,7 @@
 | `docs/ucagent_output/final_report_stage.md` | Submission checklist and final documentation refresh. |
 | `docs/ucagent_output/coherence_probe_stage.md` | Coherence probe directed stage evidence. |
 | `docs/ucagent_output/flush_stage.md` | Flush behavior directed stage evidence. |
+| `docs/ucagent_output/line_coverage_closure_stage.md` | Line coverage closure (DIR-014/015/016) stage evidence. |
 
 ## Reproducibility
 
@@ -53,5 +55,6 @@ scripts/reproduce.sh
 
 - The main regression excludes intentionally failing bug-injection runs.
 - Historical UCAgent stage artifacts preserve their stage-time command counts; current submission status is summarized here, in `README.md`, `docs/test_points.md`, and `docs/ucagent_output/final_report_stage.md`.
-- RTL line coverage is not measured in the current Picker/Python flow. Functional coverage is closed through Toffee.
-- DIR-011 through DIR-013 were post-coherence direct-agent work and are included in regression/coverage; they are not overclaimed as UCAgent-run unless replayed later.
+- RTL line coverage measured via Verilator: 1359/1364 (99.6%). Functional coverage closed through Toffee at 100%.
+- DIR-011 through DIR-013 original implementation was direct-agent work; replayed through UCAgent (`docs/ucagent_output/write_miss_eviction_replay_stage.md`).
+- DIR-014 through DIR-016 implemented through UCAgent stage 9 `line_coverage_closure` (`docs/ucagent_output/line_coverage_closure_stage.md`).

@@ -11,18 +11,19 @@ This workspace is for the CCF Track1 UCAgent competition task: verifying the Nut
 - Picker exports the selected DUT as Python class `DUTCache`.
 - `scripts/run_smoke.sh` passes the first reset/read/write smoke test.
 - The first reusable Python verification skeleton exists under `src/env`, `src/monitor`, `src/scoreboard`, and `src/utils`.
-- Directed tests now cover partial write masks, same-line word offsets, full 8-beat refill order, invalid-way replacement priority, MMIO bypass, flush behavior, coherence probe hit/miss, write miss, clean eviction, dirty-victim writeback/refill, and write-miss dirty eviction closure.
-- `scripts/run_directed.sh` currently passes directed tests with `23 passed in 1.05s`.
-- `scripts/run_regression.sh` currently passes smoke, directed, and corner tests with `26 passed in 1.34s`.
-- `scripts/collect_coverage.sh 7 18` passes the full coverage collection run with `27 passed` and the Toffee functional coverage model reports 12 groups, 31 points, and 37 bins all 100% covered.
+- Directed tests now cover partial write masks, same-line word offsets, full 8-beat refill order, invalid-way replacement priority, MMIO bypass, flush behavior (including needFlush de-assertion), coherence probe hit/miss (including full release sequence), read-burst hit, write miss, clean eviction, dirty-victim writeback/refill, and write-miss dirty eviction closure.
+- `scripts/run_directed.sh` currently passes directed tests with `26 passed in 5.10s`.
+- `scripts/run_regression.sh` currently passes smoke, directed, corner, and random tests with `30 passed in 5.43s`.
+- `scripts/collect_coverage.sh 7 18` passes the full coverage collection run with `30 passed` and the Toffee functional coverage model reports 12 groups, 31 points, and 37 bins all 100% covered.
+- Verilator RTL line coverage: **1359/1364 (99.6%)** with 5 remaining waived lines (4 Category J D-cache ports + 1 residual).
 - `scripts/reproduce.sh` is the one-command reproducibility entry and passes from a cleaned generated-artifact state.
 - The first Cache-specific UCAgent audit stage completed and generated `docs/ucagent_output/stage_audit.md`.
-- The UCAgent backpressure, CRV/coverage, dirty-writeback closure, bug-injection, final report packaging, flush behavior, and coherence-probe stages completed and generated `docs/ucagent_output/backpressure_stage.md`, `docs/ucagent_output/crv_coverage_stage.md`, `docs/ucagent_output/dirty_writeback_stage.md`, `docs/ucagent_output/bug_injection_stage.md`, `docs/ucagent_output/final_report_stage.md`, `docs/ucagent_output/flush_stage.md`, and `docs/ucagent_output/coherence_probe_stage.md`.
+- The UCAgent backpressure, CRV/coverage, dirty-writeback closure, bug-injection, final report packaging, flush behavior, coherence-probe, write-miss eviction replay, GenSpec, and line coverage closure stages completed and generated corresponding `docs/ucagent_output/*.md` artifacts.
 - The bug-injection evidence is recorded in `docs/bug_tracking.md`; the intentional failure is kept out of the normal regression suite.
 
 ## UCAgent Integration Status
 
-Current verification progress is real and reproducible. The project now has eight Cache-specific UCAgent stage artifacts covering audit, backpressure, CRV/coverage, dirty-writeback closure, bug-injection evidence, final report packaging, flush behavior, and coherence probe. Additional post-coherence directed tests for write miss and eviction closure are recorded in the AI collaboration report.
+Current verification progress is real and reproducible. The project now has ten Cache-specific UCAgent stage artifacts covering audit, backpressure, CRV/coverage, dirty-writeback closure, bug-injection evidence, final report packaging, flush behavior, coherence probe, write-miss eviction replay, GenSpec, and line coverage closure (DIR-014/015/016).
 
 - Existing work: Codex implemented and ran the Cache verification files in this workspace.
 - Verified outside this workspace: `instruction.md` proves the local UCAgent -> Codex -> MCP `Complete` path can run.
@@ -92,8 +93,8 @@ competition/track1_nutshell_cache/
 
 All planned verification work is complete for the current submission package:
 
-1. Final report package and reproducibility cleanup completed.
-2. Bug-injection harness preserved outside the normal regression path so `scripts/run_regression.sh` remains clean at `26 passed in 1.34s`.
+1. Line coverage closure completed: DIR-014 (probe hit full release), DIR-015 (read-burst hit), DIR-016 (needFlush de-assertion), and Category J waiver applied. RTL line coverage at 1359/1364 (99.6%).
+2. Bug-injection harness preserved outside the normal regression path so `scripts/run_regression.sh` remains clean at `30 passed in 5.43s`.
 3. Full reproducibility entry `scripts/reproduce.sh` validated and passes.
 
 ## Template-Aligned Report Set
