@@ -1,6 +1,6 @@
 # Markdown Index
 
-Date: 2026-05-27
+Date: 2026-05-28
 
 This file is the top-level map for the Markdown documents maintained for the Track1 NutShell Cache verification task. It records each document's role and path so the next work step can start from the right source without guessing.
 
@@ -44,6 +44,7 @@ This file is the top-level map for the Markdown documents maintained for the Tra
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/line_coverage_closure_stage.md` | UCAgent line coverage closure stage output (Stage 9). Records files changed, commands run, coverage delta (1344/1366 → 1359/1364), and remaining uncovered lines. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/genspec_flow_plan.md` | Corrected plan for applying the official six-stage UCAgent GenSpec workflow to the Cache project. Maps GenSpec stages 1-6 to local sources, output artifacts, guardrails, and Stage 1-2 completion criteria. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/genspec_flow_plan_stage.md` | UCAgent planning-stage artifact that records the corrected GenSpec workflow review, the inspected files, the verdict, and the recommended next command for the actual GenSpec Stage 1-2 run. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/dir_014_015_016_guide.md` | Chinese-primary implementation guide for DIR-014/015/016 line coverage closure through UCAgent MCP. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/genspec_cache.yaml` | Root copy of the GenSpec configuration used to run the official six-stage Cache specification flow. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/genspec_workspace/genspec_cache.yaml` | Overlay GenSpec configuration consumed by the live UCAgent command. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/genspec_workspace/Cache/README.md` | Overlay workspace note describing the copied RTL and reference-doc bundle supplied to UCAgent GenSpec. |
@@ -57,6 +58,12 @@ This file is the top-level map for the Markdown documents maintained for the Tra
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_verification_needs_and_plan.md` | Integrated verification goals, plan, stage evidence, and exit criteria. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_spec.md` | GenSpec-generated main Cache specification derived from `Cache.v` and existing project documents. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache/` | GenSpec-generated sub-spec directory for CacheStage1, CacheStage2, CacheStage3, MetaDataArray, DataArray, and Replacement. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache/CacheStage1_spec.md` | GenSpec sub-spec for CacheStage1 request acceptance and early pipeline behavior. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache/CacheStage2_spec.md` | GenSpec sub-spec for CacheStage2 hit/miss, way selection, MMIO classification, and write-mask logic. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache/CacheStage3_spec.md` | GenSpec sub-spec for CacheStage3 refill, writeback, flush, probe, MMIO, and response-control FSM behavior. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache/MetaDataArray_spec.md` | GenSpec sub-spec for metadata SRAM and reset-sweep behavior. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache/DataArray_spec.md` | GenSpec sub-spec for data SRAM, refill, hit read, write mask, and writeback data behavior. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache/Replacement_spec.md` | GenSpec sub-spec for invalid-way priority, replacement choice, and clean/dirty eviction behavior. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_spec_summary.md` | Human-check summary generated during the GenSpec flow. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_functions_and_checks.md` | Integrated function/check matrix for smoke, directed, corner, random, scoreboard, and coverage checks. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_line_func_map.md` | GenSpec CK-to-`Cache.v` line map; verified by `FileLineMapChecker`. |
@@ -67,6 +74,7 @@ This file is the top-level map for the Markdown documents maintained for the Tra
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/tests/Cache_api.py` | Standard UCAgent API wrapper exposing `create_dut`, pytest fixtures, and `api_cache_*` functions over `src/env/cache_env.py`. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/tests/Cache_function_coverage_def.py` | Standard UCAgent coverage wrapper exposing `get_coverage_groups(dut)` over `src/utils/toffee_coverage.py`. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/uc_test_report/README.md` | Template-style test report index pointing to generated coverage HTML and Markdown reports. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/uc_test_report/README_zh.md` | Chinese mirror of the UC test report index. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/workflow_gap_analysis.md` | UCAgent workflow gap analysis. Maps the project against the 11-stage default workflow and 6-stage GenSpec workflow, identifies missing deliverables, and recommends an execution plan. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/workflow_gap_analysis_zh.md` | Chinese mirror of the UCAgent workflow gap analysis. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/dir_014_015_016_guide.md` | Implementation guide for DIR-014/015/016 line coverage closure. Intended for Claude Code execution via UCAgent MCP. |
@@ -87,6 +95,10 @@ This file is the top-level map for the Markdown documents maintained for the Tra
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/interface_map_zh.md` | Chinese mirror of the Cache interface/protocol map. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/test_points_zh.md` | Chinese mirror of the test-point table. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/coverage_report_zh.md` | Chinese mirror of the functional coverage report. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/coverage_waiver_rationale_zh.md` | Chinese mirror of the line coverage waiver rationale. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/dir_014_015_016_guide_zh.md` | Chinese mirror entry for the DIR-014/015/016 implementation guide. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/genspec_flow_plan_zh.md` | Chinese mirror of the GenSpec flow plan. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/line_coverage_closure_plan_zh.md` | Chinese mirror of the line coverage closure plan. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/stage_audit_zh.md` | Chinese mirror of the audit-stage UCAgent output. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/backpressure_stage_zh.md` | Chinese mirror of the backpressure-stage UCAgent output. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/crv_coverage_stage_zh.md` | Chinese mirror of the CRV/coverage-stage UCAgent output. |
@@ -96,7 +108,29 @@ This file is the top-level map for the Markdown documents maintained for the Tra
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/final_report_stage_zh.md` | Chinese mirror of the final-report-stage UCAgent output. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/flush_stage_zh.md` | Chinese mirror of the flush-stage UCAgent output. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/coherence_probe_stage_zh.md` | Chinese mirror of the coherence-probe-stage UCAgent output. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/write_miss_eviction_replay_stage_zh.md` | Chinese mirror of the supplemental write-miss / eviction replay stage. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/line_coverage_closure_stage_zh.md` | Chinese mirror of the line coverage closure stage. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/genspec_flow_plan_stage_zh.md` | Chinese mirror of the GenSpec planning-stage artifact. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/genspec_full_stage_zh.md` | Chinese mirror of the full GenSpec stage artifact. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/workflow_gap_analysis_zh.md` | Chinese mirror of the UCAgent workflow gap analysis. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/README_zh.md` | Chinese mirror of the Cache unity-test deliverable index. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_basic_info_zh.md` | Chinese mirror of the Cache basic-info deliverable. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_verification_needs_and_plan_zh.md` | Chinese mirror of the Cache verification needs and plan. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_spec_zh.md` | Chinese mirror of the GenSpec main Cache specification. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_spec_summary_zh.md` | Chinese mirror of the GenSpec human-check summary. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_functions_and_checks_zh.md` | Chinese mirror of the FG/FC/CK function and check matrix. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_line_func_map_zh.md` | Chinese mirror of the CK-to-RTL line map. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_line_map_analysis_zh.md` | Chinese mirror of the line-map analysis. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_line_coverage_analysis_zh.md` | Chinese mirror of the line coverage analysis. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_bug_analysis_zh.md` | Chinese mirror of the Cache bug analysis. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache_test_summary_zh.md` | Chinese mirror of the final Cache test summary. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache/CacheStage1_spec_zh.md` | Chinese mirror of the CacheStage1 sub-spec. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache/CacheStage2_spec_zh.md` | Chinese mirror of the CacheStage2 sub-spec. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache/CacheStage3_spec_zh.md` | Chinese mirror of the CacheStage3 sub-spec. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache/MetaDataArray_spec_zh.md` | Chinese mirror of the MetaDataArray sub-spec. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache/DataArray_spec_zh.md` | Chinese mirror of the DataArray sub-spec. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache/Replacement_spec_zh.md` | Chinese mirror of the Replacement sub-spec. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/uc_test_report/README_zh.md` | Chinese mirror of the UC test report index. |
 
 ## Update Rule
 
