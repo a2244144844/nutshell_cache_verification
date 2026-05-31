@@ -58,3 +58,43 @@ FG-MMIO-FLUSH-COH/FC-MMIO-BYPASS/CK-MMIO-READ: 2673-2696
 FG-API/FC-API-BACKPRESSURE/CK-API-RESP-HOLD: 2697-2832
 FG-MMIO-FLUSH-COH/FC-FLUSH-BEHAVIOR/CK-FLUSH-RECOVERY: 2833-2938
 IGNORE/FC-GEN-INIT/CK-RANDOM-INIT: 2939-3046 # Top-level pipeline register random init / FIRRTL boilerplate
+
+# === Coverage Waiver IGNORE Mappings (Categories A-N, Stage 11-13 closure) ===
+# All waived lines are confirmed structurally unreachable in I-cache configuration.
+# Waiver docs: docs/coverage_waiver_rationale.md, docs/toggle_coverage_waiver.md
+
+# Category A: Assertion $fwrite failure messages
+IGNORE/FG-COVERAGE-WAIVER/FC-LINE-WAIVER/CK-WAIVER-CAT-A: 263,877,901,925,949
+
+# Category B: D-cache forwarding signals (isForwardData, useForwardData)
+IGNORE/FG-COVERAGE-WAIVER/FC-LINE-WAIVER/CK-WAIVER-CAT-B: 411,524,2267,2418
+
+# Category D: io_flush[1] pipeline kill + needFlush register
+IGNORE/FG-COVERAGE-WAIVER/FC-LINE-WAIVER/CK-WAIVER-CAT-D: 558,788,2861-2862
+
+# Category E: CacheStage2 assertion $fwrite (shared with Category A)
+IGNORE/FG-COVERAGE-WAIVER/FC-LINE-WAIVER/CK-WAIVER-CAT-E: 262
+
+# Category F: LFSR seed initialization dead state
+IGNORE/FG-COVERAGE-WAIVER/FC-LINE-WAIVER/CK-WAIVER-CAT-F: 240-241
+
+# Category G: CacheStage2 forwarding metadata register
+IGNORE/FG-COVERAGE-WAIVER/FC-LINE-WAIVER/CK-WAIVER-CAT-G: 138
+
+# Category J: CacheStage3 D-cache-only ports
+IGNORE/FG-COVERAGE-WAIVER/FC-LINE-WAIVER/CK-WAIVER-CAT-J: 420,460,2276,2316
+
+# Category K: respToL1Last counter
+IGNORE/FG-COVERAGE-WAIVER/FC-LINE-WAIVER/CK-WAIVER-CAT-K: 605,608,610
+
+# Category L: CacheStage2 forward-meta multiplexers (branch)
+IGNORE/FG-COVERAGE-WAIVER/FC-LINE-WAIVER/CK-WAIVER-CAT-L: 148,150,152,202-207
+
+# Category M: CacheStage3 D-cache forwarding + Chisel assertions (branch)
+IGNORE/FG-COVERAGE-WAIVER/FC-LINE-WAIVER/CK-WAIVER-CAT-M: 532,876,900,924,948
+
+# Category N: DIR-019/020/021/022 target branches (branch)
+IGNORE/FG-COVERAGE-WAIVER/FC-LINE-WAIVER/CK-WAIVER-CAT-N: 550,555,626,768,777,796,824,2674
+
+# Category O: Expr coverage waivers — SVA assertion/dead-logic conditions
+IGNORE/FG-COVERAGE-WAIVER/FC-LINE-WAIVER/CK-WAIVER-CAT-O: 274,787,889,913,937,961

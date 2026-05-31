@@ -218,3 +218,19 @@ if [ -d "$REPORT_DIR/line_dat" ]; then
     echo "  Line coverage (LCOV):  $REPORT_DIR/line_dat/index.html"
 fi
 echo "  Markdown:               $ROOT_DIR/docs/coverage_report.md"
+
+# ── Generate RTL-level branch coverage HTML from code_coverage.json ──
+echo ""
+echo "Generating RTL coverage HTML..."
+RTL_SRC="$ROOT_DIR/build/picker_cache/Cache.v"
+if [ -f "$RTL_SRC" ]; then
+  "$REPO_ROOT/.venv/bin/python" "$SCRIPT_DIR/generate_rtl_coverage_html.py" \
+    -i "$REPORT_DIR/line_dat/code_coverage.json" \
+    -o "$REPORT_DIR/rtl_coverage.html" \
+    --rtl "$RTL_SRC"
+else
+  "$REPO_ROOT/.venv/bin/python" "$SCRIPT_DIR/generate_rtl_coverage_html.py" \
+    -i "$REPORT_DIR/line_dat/code_coverage.json" \
+    -o "$REPORT_DIR/rtl_coverage.html"
+fi
+echo "  RTL coverage (Branch/Line/Toggle/Expr): $REPORT_DIR/rtl_coverage.html"

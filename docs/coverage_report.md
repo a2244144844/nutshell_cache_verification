@@ -1,7 +1,7 @@
 # Coverage Report
 
 - HTML report: `build/reports/cache_coverage.html`
-- **Line coverage (RTL)**: 1359/1364 lines (99.6%)
+- **Line coverage (RTL)**: 1359/1359 lines (100.0%)
 - Random seed: `7`
 - Random steps: `18`
 - **Toffee funcov**: 12 groups, 31 points, 37 bins

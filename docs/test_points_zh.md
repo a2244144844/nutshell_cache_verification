@@ -180,3 +180,201 @@ competition/track1_nutshell_cache/scripts/run_directed.sh
 ```sh
 competition/track1_nutshell_cache/scripts/run_regression.sh
 ```
+
+## Stage 11 定向测试（2026-05-31）
+
+### DIR-017：needFlush 完整生命周期 — `test_needflush_assert_and_deassert`
+
+**文件：** `tests/directed/test_flush_behavior.py`
+**目标：** 第 558、787-788 行（needFlush 寄存器 + 解除断言）
+**优先级：** P0 → P2（已豁免）
+
+**描述：** 使用低级引脚控制（`env.set_pin/get_pin/step`）对第二个请求进行逐步观测 `needFlush` 清除握手（`_T_5 & needFlush`，即 `io_out_ready & io_out_valid & needFlush`）。
+1. 通过 `drive_cpu_request` + step 循环发送 READ 到冷地址 A
+2. 在接受窗口内置 `io_flush=0b01` → needFlush=1
+3. 等待 `io_empty==1`（流水线排空）
+4. 取消 `io_flush`，step 10 个周期
+5. 使用手动引脚控制驱动新的 READ 到冷地址 B
+6. 驱动 `io_out_mem_req_ready=1` 并用低级引脚处理内存响应
+7. 逐周期 step，捕获 `io_in_resp_valid` 节拍
+8. 验证正确的响应数据和 user 字段
+
+**结果：** PASS。测试基础设施已验证，但第 558、788 行在 I-cache 模式下**结构上不可达**。根因：CacheStage3 的 `io_flush` 端口硬连接到 `io_flush[1]`（第 2786 行），该信号被 D-cache 断言（"only allow to flush icache"）阻断。`needFlush` 永远无法置 1，因为当 `io_flush` 恒为 0 时 `_GEN_1 = io_flush & state!=0 | needFlush` 退化为自循环。第 558 和 788 行已作为 Category D 扩展豁免（与第 2861-2862 行共享同一根因）。行覆盖率 → 1359/1359（100.0%）。详见 `docs/coverage_waiver_rationale.md` Category D 获取完整信号追踪。
+
+### DIR-018：respToL1Last 计数器 — `test_read_burst_hit_resptol1_counter`
+
+**文件：** `tests/directed/test_read_burst_hit.py`
+**目标：** 第 605、608、610 行（respToL1Fire、respToL1Last_wrap_wrap、respToL1Last）
+**优先级：** P1 → P2（已豁免）
+
+**描述：** 通过 READ_BURST 命中路径覆盖 respToL1Last 计数器。
+1. 用 8 个不同的 word 值填充 cache line
+2. 向命中行驱动 READ_BURST（cmd=0x2），`io_in_resp_ready=1`
+3. 统计 `io_in_resp_valid` 节拍，捕获所有响应数据
+4. 同时捕获 `io_out_coh_resp_*` 一致性释放节拍
+5. 记录是否达到计数器翻转（8+ 拍）
+
+**结果：** PASS。在 `io_in_resp_*` 上观测到单拍 CPU 响应。一致性释放节拍在 `io_out_coh_resp_*` 上观测到，但不驱动 `respToL1Last` 计数器。第 605、608、610 行已豁免为 Category K（I-cache 限制 — 多拍 CPU 响应路径在 I-cache 配置中不可用）。豁免已加入 `docs/coverage_waiver_rationale.md` Category K。
+
+## Stage 12 定向测试（2026-05-31）
+
+### DIR-019：PREFETCH 响应门控 — `test_prefetch.py`
+
+**文件：** `tests/directed/test_prefetch.py`
+**目标：** 第 2674 行（当 `s3_io_out_bits_cmd == PREFETCH` 时 `io_in_resp_valid` 门控）
+**优先级：** P1 → P2（已豁免）
+
+**描述：** 两个测试：
+1. `test_prefetch_miss_suppresses_response`：向冷地址发送 PREFETCH，验证 `io_in_resp_valid` 永不被置位
+2. `test_prefetch_fills_cache_then_read_hits`：PREFETCH + 后续 READ 命中检查
+
+**结果：** PASS。PREFETCH 被 pipeline 接受，但在 I-cache 中永远不会到达输出阶段。第 2674 行三元门控的 TRUE 分支在结构上不可达。**已豁免为 P2（Category N）。**
+
+### DIR-020：写回节拍计数器 — `test_write_miss_dirty_eviction.py`
+
+**文件：** `tests/directed/test_write_miss_dirty_eviction.py`
+**目标：** 第 550, 555, 626 行（writeL2BeatCnt 计数器递增/多路复用/复位）
+**优先级：** P1 → P2（已豁免）
+
+**描述：** `test_writeback_multi_beat_counter_exercise`：填满 4 路、弄脏每路、WRITE miss 触发脏驱逐及 8 拍写回。验证写回节拍先于重填，数据完整性正确。
+
+**结果：** PASS。第 550/555/626 行需要 WRITE_BURST/LAST 输入命令（内存总线侧），这些命令永远不会通过 I-cache 中的 CPU 请求端口到达。**已豁免为 P2（Category N）。**
+
+### DIR-021：内部 Probe 路径 — `test_coherence_probe.py`
+
+**文件：** `tests/directed/test_coherence_probe.py`
+**目标：** 第 768, 777, 796 行（probe 命中释放、MMIO 状态、probe readBeatCnt）
+**优先级：** P1 → P2（已豁免）
+
+**描述：** 两个测试通过 `io_in_req`（CPU 端口）而非 `io_out_coh_req_*` 驱动 PROBE：
+1. `test_internal_probe_miss_through_io_in_req`：空 cache 上的 PROBE miss
+2. `test_internal_probe_hit_through_io_in_req`：填充行后 PROBE 命中
+
+**结果：** PASS。内部 probe 通过 pipeline 被接受。目标分支依赖 probe 释放序列或 MMIO 路径 — 均为 D-cache 特有。**已豁免为 P2（Category N）。**
+
+### DIR-022：State2 FSM Else-If — 已被覆盖
+
+**目标：** 第 824 行（`else if (2'h2 == state2)`）
+**优先级：** P1 → P2（已豁免，false-case 不可达）
+
+**分析：** State2 在所有内存重填操作中循环 0→1→2→0（已有测试覆盖）。FALSE 分支要求 state2=3，该值永不出现（2 位寄存器，有效值仅 0-2）。**已豁免为 P2（Category N）。**
+
+### Stage 12 最终覆盖率
+
+```
+Line:   1359/1359 = 100.0%
+Branch: 471/471  = 100.0%  (from 471/494 = 95.3%)
+Toggle: 24474/28227 = 86.7%
+Expr:   131/137 = 95.6%
+37 tests passed in 8.85s
+```
+
+## Stage 13 翻转覆盖率提升（2026-05-31）
+
+### 多 Seed 随机流量
+
+实现在：
+
+```text
+tests/random/test_random_multi_seed.py
+src/generator/cache_random.py  （扩展 enable_extended 模式）
+scripts/collect_coverage_multi.sh
+```
+
+可运行：
+
+```sh
+competition/track1_nutshell_cache/scripts/collect_coverage_multi.sh
+```
+
+### 生成器扩展
+
+| 特性 | 描述 |
+|---|---|
+| 扩展地址范围 | 32 个 line base，覆盖多个 cache set |
+| 多样化数据模式 | 16 种不同的 64 位模式（全 0、全 1、交替、步进、随机） |
+| MMIO 流量 | 读/写 MMIO 地址范围（0x30000000, 0x40000000） |
+| 一致性 probe | 通过 `io_out_coh_req_*` 引脚执行 PROBE 操作 |
+| Flush 序列 | `io_flush` 断言/取消，等待 `io_empty` |
+| READ_BURST | 对命中行执行 burst 读命令 |
+| PREFETCH | 对冷地址执行 prefetch 命令 |
+| 多 seed 执行 | 5 seed（7, 13, 42, 99, 256）× 100 步 = 500 次随机操作 |
+| 向后兼容 | 非扩展模式保留原始生成器行为 |
+
+### 翻转覆盖增量
+
+| 指标 | Stage 12 后 | Stage 13 后 | 增量 |
+|---|---|---|---|
+| 翻转 | 24474/28227 (86.7%) | **24785/28227 (87.8%)** | +311 |
+
+翻转覆盖率在 87.8% 处达到平台期 — 额外 seed（8）和步数（200）不再产生改进。剩余 3442 个缺失为结构性原因：SRAM 总线位、D-cache 常量、LFSR 位、断言条件、固定信号和未使用端口。详见 `docs/toggle_coverage_waiver.md` 获取每个类别（T-A 至 T-F）的依据。
+
+### Stage 13 最终覆盖率
+
+```
+Line:   1359/1359 = 100.0%
+Branch: 471/471  = 100.0%
+Toggle: 24785/28227 = 87.8%  (from 24474/28227 = 86.7%)
+Expr:   137/137 = 100.0%  (from 131/137 = 95.6%, Category O 豁免, Stage 16)
+38 tests passed in 18.13s
+```
+
+## Stage 16 表达式覆盖率闭环（2026-05-31）
+
+### Expr 豁免闭环 — Category O
+
+剩余 6 个表达式覆盖率缺失（第 274、787、889、913、937、961 行）均为 Chisel 生成的 SVA 断言条件项（`STOP_COND`）和内部死逻辑表达式。在 I-cache 中结构不可达，原因与已有 A、D、E、M 类豁免相同。
+
+**变更文件：** `tests/conftest.py`（向 ignore_patterns 添加 6 行）、`docs/coverage_waiver_rationale.md`（Category O 章节）、`docs/coverage_waiver_rationale_zh.md`（中文镜像）、`unity_test/Cache_functions_and_checks.md`（CK-WAIVER-CAT-O）、`unity_test/Cache_line_func_map.md`（Category O IGNORE 映射）。
+
+**命令：** `scripts/collect_coverage_multi.sh` → 验证 Expr 137/137 (100.0%)。
+
+### Stage 16 最终覆盖率
+
+```
+Line:   1359/1359 = 100.0%
+Branch: 471/471  = 100.0%
+Toggle: 24785/28227 = 87.8%
+Expr:   137/137 = 100.0%
+38 tests, 0 failures
+```
+
+## Stage 17 翻转覆盖率最终尝试（2026-05-31）
+
+### 配置
+
+| 参数 | 之前（Stage 13）| Stage 17 |
+|---|---|---|
+| Seed | 5 | 10（7, 13, 42, 99, 256, 31, 77, 128, 512, 1023）|
+| 每 seed 步数 | 100 | 200 |
+| 总随机操作 | 500 | 2,000 |
+| 地址基址 | 32 | 64（EXTENDED_LINE_BASES_V2）|
+| 数据模式 | 16 | 32（DATA_PATTERNS_V2）|
+
+### 结果
+
+```
+Line:   1359/1359 = 100.0%
+Branch: 471/471  = 100.0%
+Toggle: 24947/28227 = 88.4%  （从 87.8% +162）
+Expr:   137/137 = 100.0%
+37 tests, 0 failures
+```
+
+### 结论
+
+随机操作量增加到 4 倍，获得 +162 次翻转命中（+0.6%）。剩余 3,280 次翻转缺失全部属于结构性类别（T-A 至 T-F）。**翻转覆盖率平台期确认在 88.4%——本 I-cache DUT 的实际最大值。** 豁免采用文档化方式（不编码在 `conftest.py` 中），因为 `toffee_test` 的 `filter_coverage()` 不具备类型感知。
+
+**变更文件：** `src/generator/cache_random.py`（V2 地址/模式、`enable_max_toggle`）、`tests/random/test_random_multi_seed.py`（默认值）、`scripts/collect_coverage_multi.sh`（默认值）、`docs/toggle_coverage_waiver.md` + `_zh.md`（Stage 17 章节）、`docs/ucagent_output/toggle_final_attempt_stage.md` + `_zh.md`。
+
+**命令：** `scripts/collect_coverage_multi.sh` → 验证 Toggle 88.4%。
+
+### Stage 17 最终覆盖率
+
+```
+Line:   1359/1359 = 100.0%
+Branch: 471/471  = 100.0%
+Toggle: 24947/28227 = 88.4%  （已豁免：3280，类别 T-A~T-F）
+Expr:   137/137 = 100.0%
+37 tests, 0 failures
+```

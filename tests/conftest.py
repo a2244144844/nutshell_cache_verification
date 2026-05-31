@@ -23,12 +23,24 @@ def cache_env(toffee_request, request: pytest.FixtureRequest):
     # Line coverage waivers (see docs/coverage_waiver_rationale.md):
     #   Category A/E: Assertion $fwrite failure messages (unreachable by design)
     #   Category B/G: D-cache forwarding signals (I-cache = always 0)
-    #   Category D: io_flush[1] pipeline kill (blocked by D-cache assertion)
+    #   Category D: io_flush[1] pipeline kill + needFlush register (blocked by D-cache assertion)
     #   Category F: LFSR all-zero dead state (unreachable without corruption)
+    #   Category I: needFlush de-assertion (merged into Category D)
+    #   Category J: CacheStage3 D-cache ports (structurally unreachable in I-cache)
+    #   Category K: respToL1Last counter (I-cache single-beat limitation)
+    #
+    # Branch coverage waivers (Stage 12 — see docs/coverage_waiver_rationale.md):
+    #   Category L: CacheStage2 forward-meta multiplexers (I-cache = always inactive)
+    #   Category M: CacheStage3 D-cache forwarding + Chisel assertion branches
+    #   Category N: DIR-019/020/021/022 target branches — unreachable in I-cache
+    #     (writeL2BeatCnt, probe hit release, MMIO state, state2 false case, PREFETCH output)
+    #
+    # Expr coverage waivers (Stage 16 — see docs/coverage_waiver_rationale.md):
+    #   Category O: Expr closure — assertion/dead-logic conditions unreachable in I-cache
     dut = toffee_request.create_dut(load_dut_class(),
         ignore_patterns=[
             "*Cache_top*",
-            "Cache.v:138,240-241,263,411,420,460,524,877,901,925,949,2267,2276,2316,2418,2861-2862",
+            "Cache.v:138,148,150,152,202-207,240-241,262,263,274,411,420,460,524,532,550,555,558,605,608,610,626,768,777,787,788,796,824,876,877,889,900,901,913,924,925,937,948,949,961,2267,2276,2316,2418,2674,2861-2862",
         ])
     env = CacheEnv(dut, coverage=False)
     cov = CacheCoverage(env, step_ris=False)

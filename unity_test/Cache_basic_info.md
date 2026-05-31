@@ -22,6 +22,7 @@ The selected DUT is the Picker example Cache RTL copied into this workspace. The
 | Test language | Python |
 | Test runner | pytest |
 | Functional coverage | `src/utils/cache_coverage.py`, `src/utils/toffee_coverage.py` |
+| Toggle coverage | `scripts/collect_coverage_multi.sh`, `scripts/generate_rtl_coverage_html.py` |
 | UCAgent orchestration | `configs/ucagent_track1_cache.yaml`, `scripts/run_ucagent_stage.sh` |
 
 ## Top-Level Interfaces

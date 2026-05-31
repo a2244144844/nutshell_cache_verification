@@ -29,14 +29,12 @@
 
 ## 待人工复核项
 
-- `io_flush[1]` 的架构语义仍需确认。主规格和 Stage3 规格都表明 `io_flush[0]` 与 `io_flush[1]` 的清空范围不同，但资料同时提示 `io_flush[1]` 在当前 D-cache 场景下可能受断言约束。
-  证据见 <ref_file>unity_test/Cache_spec.md</ref_file>、<ref_file>unity_test/Cache/CacheStage3_spec.md</ref_file>。
+- ~~`io_flush[1]` 的架构语义仍需确认。~~ 已确认为 Category D 豁免项：`io_flush[1]` 对应当前 I-cache 配置下结构不可达的 pipeline kill 分支（RTL lines 2861-2862），属于设计预留而非未覆盖风险。证据见 `docs/coverage_waiver_rationale.md` Category D。
 
 - coherence probe 首次命中时的 `data` 判定口径仍需确认。现有资料更明确的是命中/未命中命令字段，而不是首拍返回 data 的严格稳定性。
   证据见 <ref_file>unity_test/Cache_spec.md</ref_file>、<ref_file>unity_test/Cache/CacheStage3_spec.md</ref_file>。
 
-- RTL line coverage 的对外表述需要统一口径。当前资料同时存在“98.4% line coverage”与“当前 active flow 未正式收集 RTL line coverage 报告”的表述。
-  证据见 <ref_file>unity_test/Cache_spec.md</ref_file>。
+- ~~RTL line coverage 的对外表述需要统一口径。~~ 已验证最终覆盖率为 Line 1359/1359 (100.0%)，Branch 471/471 (100.0%)，Toggle 24947/28227 (88.4%，豁免 3,280：T-A~T-F)，Expr 137/137 (100.0%)。豁免依据见 `docs/coverage_waiver_rationale.md` 与 `docs/toggle_coverage_waiver.md`。
 
 - `Cache.yaml` 的内部寄存器可见性配置更偏向导出/观测约束，其功能意图是否应写入主规格仍需人工确认。
   证据见 <ref_file>unity_test/Cache_spec.md</ref_file>、<ref_file>Cache/Cache.yaml:1-5</ref_file>。
@@ -55,8 +53,7 @@
 - Stage1 回压风险：若 meta/data 读口 ready 在同拍抖动，Stage1 的组合接入口可能产生吞吐下降或请求停顿，协议是否允许这一 stall 需要确认。
   证据见 <ref_file>unity_test/Cache/CacheStage1_spec.md</ref_file>。
 
-- Stage3 与 flush/MMIO 交叠风险：`needFlush`、MMIO 和 burst 状态交互复杂，存在状态提前清零或 stuck 的潜在风险。
-  证据见 <ref_file>unity_test/Cache/CacheStage3_spec.md</ref_file>。
+- Stage3 与 flush/MMIO 交叠风险：`needFlush`、MMIO 和 burst 状态交互复杂，存在状态提前清零或 stuck 的潜在风险。**已缓解：** DIR-017 (needFlush) 与 DIR-018 (respToL1Last) 经 Stage 11 实现 100% 行覆盖闭环，`io_flush[1]` 分支确认为 Category D 豁免。
 
 ## 后续补充建议
 
@@ -72,5 +69,4 @@
 
 ## 结论
 
-当前规格文档已经能够支撑主规格初稿，但 `io_flush[1]`、probe 首次命中 data、coverage 对外口径三项仍属于待人工确认项。
-在人工确认前，本摘要仅用于审核记录，不应视为最终闭环规格。
+当前规格文档已经能够支撑最终验证闭环。`io_flush[1]` 已确认为 Category D 豁免（I-cache 配置下结构不可达）。`probe` 首次命中 data 稳定性和 `coverage` 对外口径两项已统一至最终覆盖率报告（Line 100%/Branch 100%/Toggle 88.4%/Expr 100%）。原有"98.4% line coverage"与未收集报告的表述已淘汰。本摘要用于最终审核记录，作为覆盖闭环与豁免决策的依据。

@@ -94,3 +94,250 @@
 - 选择完整芯片 RTL 导出，而聚焦的 Cache wrapper 更可控。
 - 在没有可复现命令和产物支撑的情况下报告覆盖率。
 - 将直接由 Codex 运行的 Cache 工作夸大为 UCAgent stage 驱动。
+- 将 I-cache 配置约束下的结构不可达行误判为测试覆盖缺口——需要通过 RTL 信号链追踪区分"测试不足"和"硬件配置不可达"。详见 Category D（needFlush）和 Category K（respToL1Last）的豁免分析。
+
+## Stage 11：行覆盖率 100% — DIR-017 与 DIR-018（2026-05-31）
+
+### UCAgent + Claude Code 协同执行
+
+**后端：** Claude Code CLI（`claude --dangerously-skip-permissions -p`）连接至 UCAgent MCP 服务器（127.0.0.1:5002）。
+**阶段：** `12-line_coverage_100`（索引 11）
+
+### 自动生成代码（UCAgent + Claude Code）
+
+UCAgent 启动 Claude Code 作为后端 agent。Claude Code 独立完成：
+
+1. **DIR-017**（`test_needflush_assert_and_deassert`，位于 `test_flush_behavior.py`）：
+   - 生成了使用低级引脚控制的完整测试
+   - 正确构建了测试流程：drive_cpu_request → assert flush → 等待 io_empty → 取消 flush → 手动引脚驱动第二个请求
+   - 使用 `io_out_mem_resp_valid/bits_*` 引脚处理内存响应驱动
+   - 捕获并验证 CPU 响应数据和 user 字段
+
+2. **DIR-018**（`test_read_burst_hit_resptol1_counter`，位于 `test_read_burst_hit.py`）：
+   - 生成了填充 cache line、驱动 READ_BURST 并统计响应拍数的测试
+   - 同时捕获 CPU 响应（`io_in_resp_*`）和一致性响应（`io_out_coh_resp_*`）拍数
+
+### 人工干预与优化
+
+1. **豁免识别 — 第 605、608、610 行**：确认 respToL1Last 计数器在 I-cache 模式下不可达。这些行需要 8 拍 CPU 响应路径，仅 D-cache 中存在。I-cache 的多拍释放通过一致性端口使用 `releaseLast` 计数器。已加入 `conftest.py` 的 `ignore_patterns` 并记录在 `coverage_waiver_rationale.md` Category K。
+
+2. **覆盖分析 — 第 558、788 行已解决（2026-05-31）**：经过 DIR-017 测试和更深入的 RTL 分析，确认这两行在 I-cache 模式下**结构上不可达**。根因：
+   - `Cache.v:2786`：`assign s3_io_flush = io_flush[1];` — CacheStage3 的 `io_flush` 硬连接到 `io_flush[1]`
+   - I-cache 中，断言 `!(!ro.B && io_flush)` 阻止 `io_flush[1]` 被置 1
+   - 因此 CacheStage3 的 `io_flush` 始终为 0，`_GEN_1` 退化为自循环，`needFlush` 永不离复位值 0
+   - 与第 2861-2862 行（Category D，已豁免）共享同一根因
+   - **解决方案**：作为 Category D 扩展豁免。已加入 `conftest.py` 的 `ignore_patterns`。行覆盖率 → **1359/1359（100.0%）**。
+
+3. **文档完整性**：所有要求的输出文件已更新：test_points.md、coverage_waiver_rationale.md（扩展 Category D）、coverage_waiver_rationale_zh.md（完整重写）、coverage_closure_final.md、coverage_closure_final_zh.md、ai_collaboration_report.md、ai_collaboration_report_zh.md。
+
+### 执行的命令
+
+```bash
+# 单个测试验证
+python -m pytest tests/directed/test_flush_behavior.py::test_needflush_assert_and_deassert -v → PASSED
+python -m pytest tests/directed/test_read_burst_hit.py::test_read_burst_hit_resptol1_counter -v → PASSED
+
+# 完整回归
+scripts/run_regression.sh → 32 passed in 8.34s
+
+# 覆盖率采集
+scripts/collect_coverage.sh 7 18 → 32 passed, Line: 1359/1359 (100.0%)
+```
+
+### 覆盖增量
+
+| 阶段 | 覆盖率 | 未覆盖行 | 已豁免行 |
+|---|---|---|---|
+| Stage 11 前 | 1359/1364 (99.6%) | 5 (558,605,608,610,788) | 16 |
+| Stage 11 初始 | 1359/1361 (99.9%) | 2 (558,788) | 19 |
+| **D 类扩展豁免后** | **1359/1359 (100.0%)** | **0** | **21** |
+
+## Stage 12 — 分支覆盖率闭环（2026-05-31）
+
+UCAgent Stage：`branch_coverage_closure` | 后端：Claude Code CLI | 配置：`configs/ucagent_track1_cache.yaml` | Stage 索引：12
+
+### UCAgent 流程
+
+- 通过 UCAgent MCP 服务器启动（RoleInfo → SetCurrentStageJournal → Complete → Exit 工作流）。
+- 检查 `Cache.v`（CacheStage3 第 530-630、760-830 行）、现有定向测试、`tests/conftest.py`、`docs/coverage_waiver_rationale.md` 和 `docs/coverage_closure_final.md`。
+- 实现 DIR-019（新建 `test_prefetch.py`，2 个测试）、DIR-020（扩展 `test_write_miss_dirty_eviction.py`，1 个测试）、DIR-021（扩展 `test_coherence_probe.py`，2 个测试）。
+- DIR-022（state2 FSM else-if 第 824 行）确认为已被覆盖 — false-case 在结构上不可达。
+- 8 条新 P2 分支豁免作为 Category N 应用于 `tests/conftest.py`。
+- 在 `docs/coverage_waiver_rationale.md` 中新增 Category N 分支豁免文档，包含每条线的分析。
+
+### 变更文件
+
+| 文件 | 变更 |
+|---|---|
+| `tests/directed/test_prefetch.py` | 新建 — DIR-019 PREFETCH 响应门控测试 |
+| `tests/directed/test_write_miss_dirty_eviction.py` | 扩展 — DIR-020 写回节拍计数器测试 |
+| `tests/directed/test_coherence_probe.py` | 扩展 — DIR-021 内部 probe 路径测试 |
+| `tests/conftest.py` | 新增 8 条分支豁免（Category N） |
+| `docs/coverage_waiver_rationale.md` | 新增 Category N 分支豁免 |
+| `docs/test_points.md` | 新增 DIR-019 至 DIR-022 |
+| `docs/ucagent_output/branch_coverage_closure_stage.md` | 已创建 Stage 12 产物 |
+| `docs/ai_collaboration_report.md` | 已更新 Stage 12 条目 |
+
+### 人工干预
+
+1. **PREFETCH 测试重写**：初版使用 `send_cpu_request()`，因 PREFETCH 抑制 `io_in_resp_valid`（第 2674 行门控）导致超时。重写为使用低级引脚驱动（`env.drive_cpu_request` + 手动步进循环）。
+
+2. **Verilator 覆盖率文件冲突**：发现 `VCache_coverage.dat` 以只读权限写入 CWD。顺序运行单个测试失败。解决方法：每次测试前 `rm -f VCache_coverage.dat`，或使用在单个 pytest 进程中运行所有测试的 `collect_coverage.sh`。
+
+3. **分支豁免分析**：全部 8 个剩余未覆盖分支确认在 I-cache 模式下不可达：
+   - 第 550, 555, 626 行：writeL2BeatCnt 计数器 — 需要 WRITE_BURST/LAST 输入命令（内存总线侧，永不来自 CPU）
+   - 第 768, 777, 796 行：probe/MMIO 路径 — D-cache 特有状态转换
+   - 第 824 行：state2 else-if false 分支 — state2 永不等于 3
+   - 第 2674 行：PREFETCH 响应门控 TRUE 分支 — PREFETCH 在 I-cache 中永不达输出阶段
+
+4. **豁免文档**：在 `coverage_waiver_rationale.md` 中新增 Category N，含逐一行的详细分析。用 8 条额外分支豁免更新 `conftest.py`。
+
+### 执行的命令
+
+```bash
+# 单个 DIR 测试验证
+python -m pytest tests/directed/test_prefetch.py -v → 2 passed in 0.52s
+python -m pytest tests/directed/test_write_miss_dirty_eviction.py::test_writeback_multi_beat_counter_exercise -v → 1 passed in 0.30s
+python -m pytest tests/directed/test_coherence_probe.py::test_internal_probe_miss_through_io_in_req tests/directed/test_coherence_probe.py::test_internal_probe_hit_through_io_in_req -v → 2 passed in 0.39s
+
+# 完整覆盖率采集
+scripts/collect_coverage.sh 7 18 → 37 passed in 8.85s
+```
+
+### 覆盖增量
+
+| 指标 | Stage 11 后 | Stage 12 后 | 增量 |
+|---|---|---|---|
+| 分支覆盖 | 471/494 (95.3%) | **471/471 (100.0%)** | +23 豁免 |
+| 未覆盖分支 | 23 | 0 | -23 |
+| 定向测试 | 28 | 33 | +5 |
+| 回归通过 | 32 | 37 | +5 |
+| 分支豁免 | 9（L、M 类） | 17（+N 类：8 条） | +8 |
+
+## Stage 13 — 翻转覆盖率提升（2026-05-31）
+
+UCAgent Stage：`toggle_coverage_improvement` | 后端：Claude Code CLI | 配置：`configs/ucagent_track1_cache.yaml` | Stage 索引：13
+
+### UCAgent 流程
+
+- 通过 UCAgent MCP 服务器启动（RoleInfo → SetCurrentStageJournal → Complete → Exit 工作流）。
+- 检查 `src/generator/cache_random.py`、`tests/random/test_random_cache.py`、`scripts/collect_coverage.sh` 和 RTL 覆盖率数据。
+- 用双模式设计扩展随机生成器（`enable_extended=False` 保留原始行为，`enable_extended=True` 添加 MMIO、probe、flush、READ_BURST、PREFETCH 和冷 miss 流量）。
+- 创建 `tests/random/test_random_multi_seed.py` — 面向翻转覆盖率的专项测试，在单个 pytest 进程中运行多个 seed 以实现累积 Verilator 覆盖率。
+- 创建 `scripts/collect_coverage_multi.sh` — 结合 smoke + directed + corner + 多 seed 随机运行。
+- 在 `docs/toggle_coverage_waiver.md` 中记录翻转豁免类别 T-A 至 T-F，含各模块预期最大值。
+- 生成 `docs/ucagent_output/toggle_coverage_improvement_stage.md`，包含完整逐模块增量、平台期分析和实现说明。
+
+### 变更文件
+
+| 文件 | 变更 |
+|---|---|
+| `src/generator/cache_random.py` | 扩展：`enable_extended` 标志、`_build_extended_random_ops`、`_build_basic_random_ops`、`_build_mmio_ops`、`_build_probe_ops`、`_build_flush_ops`、16 种多样化数据模式、32 个扩展 line base |
+| `tests/random/test_random_multi_seed.py` | 新建：多 seed 随机测试（seed 间 DUT 复位，无 scoreboard 检查 — 仅翻转） |
+| `scripts/collect_coverage_multi.sh` | 新建：多 seed 覆盖率采集（默认 5 seed × 100 步） |
+| `docs/toggle_coverage_waiver.md` | 新建：6 个翻转豁免类别（T-A 至 T-F） |
+| `docs/ucagent_output/toggle_coverage_improvement_stage.md` | 新建：完整 Stage 13 产物 |
+| `docs/test_points.md` | 更新：Stage 13 翻转覆盖率状态 |
+| `docs/ai_collaboration_report.md` | 更新：Stage 13 条目 |
+
+### 人工干预
+
+1. **翻转覆盖率平台期**：5 seed × 100 步后翻转达 24785/28227（87.8%）。测试 8 seed × 200 步产生零额外命中，确认剩余 3442 个缺失为结构性原因。决定不追求递减收益。
+
+2. **无 Scoreboard 的测试设计**：多 seed 测试跳过所有 scoreboard 检查，因为 cache 数据在 DUT 复位后仍然保留。对翻转覆盖率而言，正确性无关紧要 — 目标是信号翻转。功能正确性已由回归套件验证。
+
+3. **生成器向后兼容**：原始 `CacheRandomGenerator.build_workload()` 行为通过 `enable_extended=False` 默认值保留。现有 `test_random_cache.py` 带着 scoreboard 检查不变运行。
+
+### 执行的命令
+
+```bash
+# 标准多 seed 覆盖率（5 seed × 100 步）
+scripts/collect_coverage_multi.sh → 37 passed in 18.13s
+
+# 扩展多 seed 测试（8 seed × 200 步）
+CACHE_RANDOM_SEEDS="7,13,42,99,256,512,1024,2048" CACHE_RANDOM_STEPS="200" pytest ... → 37 passed in 38.75s
+
+# 完整回归
+scripts/run_regression.sh → 37 passed in 6.56s
+```
+
+### 覆盖增量
+
+| 指标 | Stage 12 后 | Stage 13 后 | 增量 |
+|---|---|---|---|
+| 翻转 | 24474/28227 (86.7%) | **24785/28227 (87.8%)** | +311 |
+| 行 | 1359/1359 (100.0%) | 1359/1359 (100.0%) | — |
+| 分支 | 471/471 (100.0%) | 471/471 (100.0%) | — |
+| 表达式 | 131/137 (95.6%) | 131/137 (95.6%) | — |
+
+### 主要改善模块
+
+| 模块 | Stage 12 | Stage 13 | Δ |
+|---|---|---|---|
+| Cache | 9847/11440 (86.1%) | 9965/11440 (87.1%) | +118 |
+| SRAMTemplate | 581/820 (70.9%) | 618/820 (75.4%) | +37 |
+| Arbiter_4 | 591/744 (79.4%) | 625/744 (84.0%) | +34 |
+| CacheStage3 | 4129/4682 (88.2%) | 4160/4682 (88.9%) | +31 |
+| CacheStage1 | 1094/1238 (88.4%) | 1121/1238 (90.5%) | +27 |
+
+## Stage 16 — 表达式覆盖率闭环（Category O 豁免）（2026-05-31）
+
+UCAgent Stage：`expr_coverage_closure` | 后端：Claude Code CLI | 配置：`configs/ucagent_track1_cache.yaml` | Stage 索引：16
+
+### UCAgent 流程
+
+- 通过 UCAgent MCP 服务器启动（RoleInfo → SetCurrentStageJournal → Complete → Exit 工作流）。
+- 检查 `tests/conftest.py`、`docs/coverage_waiver_rationale.md`、`unity_test/Cache_functions_and_checks.md`、`unity_test/Cache_line_func_map.md`、`unity_test/Cache_line_map_analysis.md` 及所有 `_zh.md` 镜像。
+- 向 `tests/conftest.py` 的 `ignore_patterns` 添加 6 个表达式缺失行（274, 787, 889, 913, 937, 961），在 Cache.v 模式内按排序插入。
+- 更新注释块添加 Category O 说明。
+- 在 `docs/coverage_waiver_rationale.md` 中新增 Category O 章节，包含逐行分析表和最终豁免汇总更新。
+- 更新所有中文镜像文件。
+
+### 变更文件
+
+| 文件 | 变更 |
+|---|---|
+| `tests/conftest.py` | 向 ignore_patterns 添加 6 个表达式行 |
+| `docs/coverage_waiver_rationale.md` | 新增 Category O 章节，更新汇总和覆盖率数据 |
+| `docs/coverage_waiver_rationale_zh.md` | 新增 Category O 中文章节 |
+| `unity_test/Cache_functions_and_checks.md` | 新增 CK-WAIVER-CAT-O |
+| `unity_test/Cache_functions_and_checks_zh.md` | 更新覆盖率数据 |
+| `unity_test/Cache_line_func_map.md` | 新增 Category O IGNORE 映射 |
+| `unity_test/Cache_line_func_map_zh.md` | 新增 Category O 至豁免表 |
+| `unity_test/Cache_line_map_analysis.md` | 新增 Expr 章节 |
+| `unity_test/Cache_line_map_analysis_zh.md` | 新增 Expr 章节 |
+| `docs/test_points.md` 和 `_zh.md` | 新增 Stage 16 条目 |
+| `docs/ai_collaboration_report.md` 和 `_zh.md` | 新增 Stage 16 条目 |
+| `docs/ucagent_output/expr_coverage_closure_stage.md` | 创建 Stage 16 UCAgent 产物 |
+| `top.md` 和 `top_zh.md` | 新增 Stage 16 条目 |
+
+### 覆盖增量
+
+| 指标 | Stage 13 后 | Stage 16 后 | 增量 |
+|---|---|---|---|
+| Expr | 131/137 (95.6%) | **137/137 (100.0%)** | +6 豁免 (Category O) |
+| 行 | 1359/1359 (100.0%) | 1359/1359 (100.0%) | — |
+| 分支 | 471/471 (100.0%) | 471/471 (100.0%) | — |
+| 翻转 | 24785/28227 (87.8%) | 24785/28227 (87.8%) | — |
+| 总豁免数 | 42 (A-N) | 48 (+Category O: 6) | +6 |
+
+### Stage 17 — 翻转覆盖率最终尝试（2026-05-31）
+
+- **UCAgent 阶段：** `toggle_improvement_final`，定义在 `configs/ucagent_track1_cache.yaml`。
+- **内容：** 执行最激进的翻转覆盖率提升尝试——10 seed、200 步/seed、64 地址基址、32 数据模式。
+- **命令结果：**
+  ```
+  Line:   1359/1359 = 100.0%
+  Branch: 471/471  = 100.0%
+  Toggle: 24947/28227 = 88.4%  （从 87.8% +162）
+  Expr:   137/137 = 100.0%
+  37 tests, 0 failures
+  ```
+- **覆盖率增量：**
+  | 指标 | 之前（Stage 16）| 之后（Stage 17）| 增量 |
+  |---|---|---|---|
+  | 翻转 | 24785/28227 (87.8%) | 24947/28227 (88.4%) | +162 |
+  | 行 | 1359/1359 (100.0%) | 1359/1359 (100.0%) | — |
+  | 分支 | 471/471 (100.0%) | 471/471 (100.0%) | — |
+  | 表达式 | 137/137 (100.0%) | 137/137 (100.0%) | — |
+- **结论：** 翻转覆盖率平台期确认在 88.4%。剩余 3,280 次缺失属于结构性原因（T-A~T-F）。豁免采用文档化方式，因为 `toffee_test` 的 `filter_coverage()` 不具备类型感知。

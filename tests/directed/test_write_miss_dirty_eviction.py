@@ -139,3 +139,68 @@ async def test_write_miss_dirty_eviction_preserves_write_merge(cache_env):
     )
     env.scoreboard.check_read_response(r, expected_data=expected_merged, expected_user=0xB30)
     env.scoreboard.check_no_memory_request(m)
+
+
+@toffee_test.testcase
+async def test_writeback_multi_beat_counter_exercise(cache_env):
+    """DIR-020: Multi-beat writeback exercises the writeL2BeatCnt counter path.
+
+    Fills and dirties 4 ways, then sends a WRITE miss to force dirty eviction
+    with a full 8-beat writeback.  Drives io_out_mem_req_ready=1 throughout
+    so the writeback beat counter increments on each beat.
+
+    Targets CacheStage3 lines:
+      550: writeL2BeatCnt increment (TRUE branch: _T_5 & WRITE cmd)
+      555: writeL2BeatCnt used as data word index
+      626: writeL2BeatCnt reset on WRITE_BURST
+    """
+    env = cache_env
+    env.reset()
+
+    set_base = 0x800F_0000
+    conflict_base = set_base + 0x8000
+    line_bases = [set_base + idx * 0x2000 for idx in range(4)]
+
+    fill_values = [
+        0xAAA0_AAA0_AAA0_AAA0,
+        0xBBB1_BBB1_BBB1_BBB1,
+        0xCCC2_CCC2_CCC2_CCC2,
+        0xDDD3_DDD3_DDD3_DDD3,
+    ]
+
+    for idx, (line_base, fill_value) in enumerate(zip(line_bases, fill_values)):
+        response, mem_requests = env.send_cpu_request(
+            sb.CpuRequest(cmd=sb.READ, addr=line_base, user=0xD00 + idx),
+            refill_beats=[fill_value] * 8,
+        )
+        env.scoreboard.check_read_response(response, expected_data=fill_value, expected_user=0xD00 + idx)
+
+    for line_base in line_bases:
+        write, _ = env.send_cpu_request(
+            sb.CpuRequest(cmd=sb.WRITE, addr=line_base, wdata=0xFFFF_FFFF_FFFF_FFFF, wmask=0xFF, user=0xD10)
+        )
+        env.scoreboard.check_write_response(write, expected_user=0xD10)
+
+    write_data = 0xCAFE_BABE_DEAD_BEEF
+    refill_value = 0x9999_8888_7777_6666
+    response, mem_requests = env.send_cpu_request(
+        sb.CpuRequest(cmd=sb.WRITE, addr=conflict_base, wdata=write_data, wmask=0xFF, user=0xD20),
+        refill_data=refill_value,
+    )
+    env.scoreboard.check_write_response(response, expected_user=0xD20)
+
+    write_reqs = [req for req in mem_requests if req.cmd in {sb.WRITE_BURST, sb.WRITE_LAST}]
+    read_reqs = [req for req in mem_requests if req.cmd == sb.READ_BURST]
+    assert write_reqs, "dirty eviction must generate writeback beats"
+    assert write_reqs[-1].cmd == sb.WRITE_LAST, "last writeback beat must be WRITE_LAST"
+    assert read_reqs, "write miss must generate READ_BURST refill"
+
+    # Verify writeback beats came before refill
+    assert mem_requests.index(write_reqs[0]) < mem_requests.index(read_reqs[0]), \
+        "writeback must precede refill"
+
+    # Verify the refilled line has correct merged data
+    r, _ = env.send_cpu_request(
+        sb.CpuRequest(cmd=sb.READ, addr=conflict_base, user=0xD30),
+    )
+    env.scoreboard.check_read_response(r, expected_data=write_data, expected_user=0xD30)

@@ -1,13 +1,13 @@
 {
-    "config": "<_pytest.config.Config object at 0x1024d0bd0>",
+    "config": "<_pytest.config.Config object at 0x100de0890>",
     "tests": [],
     "warnings": [
-        "{message : PluggyTeardownRaisedWarning('A plugin raised an exception during an old-style hookwrapper teardown.\\nPlugin: reporter, Hook: pytest_collection\\nUsageError: file or directory not found: ../tests/directed/test_read_burst_hit.py::test_read_burst_hit_returns_8_beats\\nFor more information see https://pluggy.readthedocs.io/en/stable/api_reference.html#pluggy.PluggyTeardownRaisedWarning'), category : 'PluggyTeardownRaisedWarning', filename : '/Users/zzy/Workspace/ucagent/.venv/lib/python3.11/site-packages/_pytest/main.py', lineno : 371, line : None}"
+        "{message : PluggyTeardownRaisedWarning('A plugin raised an exception during an old-style hookwrapper teardown.\\nPlugin: reporter, Hook: pytest_collection\\nUsageError: file or directory not found: ../tests/directed/test_flush_behavior.py\\nFor more information see https://pluggy.readthedocs.io/en/stable/api_reference.html#pluggy.PluggyTeardownRaisedWarning'), category : 'PluggyTeardownRaisedWarning', filename : '/Users/zzy/Workspace/ucagent/.venv/lib/python3.11/site-packages/_pytest/main.py', lineno : 371, line : None}"
     ],
     "session": "<Session  exitstatus=<ExitCode.USAGE_ERROR: 4> testsfailed=0 testscollected=0>",
-    "started": 1779886464.200753,
+    "started": 1780157226.452265,
     "items": {},
-    "ended": 1779886464.208173,
+    "ended": 1780157226.5041249,
     "colors": {
         "passed": [
             "#43A047",

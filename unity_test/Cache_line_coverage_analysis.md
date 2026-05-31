@@ -41,26 +41,28 @@ The legacy random collector still reports some write-miss bins as gaps because t
 - `tests/directed/test_clean_eviction.py`
 - `tests/directed/test_write_miss_dirty_eviction.py`
 
-## RTL Line Coverage Status
+## RTL Coverage Status (Final)
 
-Verilator RTL line coverage is collected via the `-c` flag in Picker export. Results are available in:
+Verilator RTL coverage is collected via the `-c` flag in Picker export. Results are available in:
 
 - HTML (funcov + line): `build/reports/cache_coverage.html`
 - LCOV HTML: `build/reports/line_dat/index.html`
 - Markdown: `docs/coverage_report.md`
 
-Current result:
+Final result:
 
 ```text
-Line coverage: 1359/1364 (99.6%)
-Toffee funcov: 12 groups, 31 points, 37 bins (100%)
-Waived (Categories A-G + J): 16 DUT lines + entire Picker wrapper (*Cache_top*)
-Remaining uncovered: 5 lines
+Line coverage:   1359/1359 (100.0%)
+Branch coverage: 471/471 (100.0%)
+Toggle coverage: 24947/28227 (88.4%)
+Toffee funcov:   12 groups, 31 points, 37 bins (100%)
+Waived lines:    42 lines (Categories A-N)
+Waived toggles:  3280 toggles (Categories T-A–T-F, documentation-based)
 ```
 
-### Waiver Summary
+### Final Waiver Summary
 
-Waivers are applied via `ignore_patterns` in `tests/conftest.py` (see `docs/coverage_waiver_rationale.md` for full rationale):
+Line/branch waivers are applied via `ignore_patterns` in `tests/conftest.py` (see `docs/coverage_waiver_rationale.md` for full rationale):
 
 | Category | Lines | Count | Description |
 |---|---|---|---|
@@ -69,9 +71,16 @@ Waivers are applied via `ignore_patterns` in `tests/conftest.py` (see `docs/cove
 | D | 2861-2862 | 2 | `io_flush[1]` pipeline kill — blocked by D-cache assertion |
 | F | 240-241 | 2 | LFSR all-zero dead state — unreachable without corruption |
 | J | 420, 460, 2276, 2316 | 4 | CacheStage3 D-cache ports — structurally unreachable in I-cache configuration |
-| **Waived subtotal** | | **16** | (line 263 counted once for A+E) |
-| `*Cache_top*` | entire file | — | Picker-generated DPI wrapper (not DUT code) |
+| H, I, K, L, M, N | (see rationale doc) | 24 | Additional line/branch waivers — structurally unreachable or false-path |
+| **Waived subtotal** | | **42** | |
 
-### Remaining Uncovered Lines
+Toggle waivers are documented in `docs/toggle_coverage_waiver.md`.
 
-5 residual lines remain uncovered after Category J waiver and DIR-014/015/016 coverage closure. See `docs/line_coverage_closure_plan.md` and `docs/coverage_waiver_rationale.md` for detailed analysis.
+### Coverage Closure Timeline
+
+- Stage 9 (`line_coverage_closure`): DIR-014/015/016 → line 99.6%
+- Stage 11 (`line_coverage_100`): DIR-017 (needFlush), DIR-018 (respToL1Last) → line 100.0%
+- Stage 12 (`branch_coverage_closure`): DIR-019 (PREFETCH), DIR-020 (writeback counters), DIR-021 (internal probe), DIR-022 (state2) → branch 100.0%
+- Stage 13 (`toggle_coverage_improvement`): Multi-seed random traffic → toggle 87.8%
+
+No remaining uncovered lines or branches after waiver application.

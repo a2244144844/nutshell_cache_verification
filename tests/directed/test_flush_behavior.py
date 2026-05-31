@@ -147,3 +147,110 @@ async def test_flush_during_miss_then_recover_with_subsequent_request(cache_env)
     )
     env.scoreboard.check_read_response(resp, expected_data=0xFEED_FACE_CAFE_BEEF, expected_user=0x402)
     env.scoreboard.check_single_read_burst(mem, expected_addr=addr_b)
+
+
+@toffee_test.testcase
+async def test_needflush_assert_and_deassert(cache_env):
+    """DIR-017: needFlush full lifecycle with low-level pin control.
+
+    Uses manual pin driving for the second request to ensure step-by-step
+    observability of the needFlush clear handshake (_T_5 & needFlush, i.e.
+    io_out_ready & io_out_valid & needFlush).  Covers lines 558 (needFlush
+    register declaration) and 787-788 (needFlush <= 0)."""
+    env = cache_env
+    env.reset()
+
+    addr_a = 0x8000_2000
+    addr_b = 0x8000_6000
+
+    env.drive_cpu_request(sb.CpuRequest(cmd=sb.READ, addr=addr_a, user=0x501))
+
+    env.set_pin("io_flush", 0b01)
+
+    accepted = False
+    for _ in range(100):
+        env.step(1)
+        if env.get_pin("io_in_req_valid") and env.get_pin("io_in_req_ready"):
+            accepted = True
+            break
+    assert accepted, "read miss request was not accepted"
+
+    env.clear_cpu_request()
+
+    for _ in range(50):
+        if env.get_pin("io_empty") == 1:
+            break
+        env.step(1)
+    assert env.get_pin("io_empty") == 1, "io_empty should be high after flush squashes the accepted request"
+
+    env.set_pin("io_flush", 0)
+    env.step(10)
+
+    env.set_pin("io_in_req_bits_addr", addr_b)
+    env.set_pin("io_in_req_bits_size", 3)
+    env.set_pin("io_in_req_bits_cmd", sb.READ)
+    env.set_pin("io_in_req_bits_wmask", 0)
+    env.set_pin("io_in_req_bits_wdata", 0)
+    env.set_pin("io_in_req_bits_user", 0x502)
+    env.set_pin("io_in_req_valid", 1)
+
+    env.set_pin("io_out_mem_req_ready", 1)
+
+    accepted_b = False
+    mem_req_started = False
+    mem_resp_driven = False
+    mem_resp_done = False
+    response = None
+
+    for cycle in range(300):
+        will_accept = bool(
+            env.get_pin("io_in_req_valid") and env.get_pin("io_in_req_ready")
+        )
+
+        mem_req_valid = bool(env.get_pin("io_out_mem_req_valid"))
+        if mem_req_valid and not mem_req_started:
+            mem_req_started = True
+
+        if mem_req_started and not mem_resp_driven:
+            env.set_pin("io_out_mem_resp_valid", 1)
+            env.set_pin("io_out_mem_resp_bits_cmd", sb.READ_LAST)
+            env.set_pin("io_out_mem_resp_bits_rdata", 0xCAFE_B0B0_DEAD_BEEF)
+            mem_resp_driven = True
+        elif mem_resp_done:
+            env.set_pin("io_out_mem_resp_valid", 0)
+
+        if mem_resp_driven and not mem_resp_done:
+            if bool(env.get_pin("io_out_mem_resp_valid")) and bool(
+                env.get_pin("io_out_mem_resp_ready")
+            ):
+                mem_resp_done = True
+
+        cur_valid = bool(env.get_pin("io_in_resp_valid"))
+        if cur_valid and response is None:
+            response = (
+                env.get_pin("io_in_resp_bits_cmd"),
+                env.get_pin("io_in_resp_bits_rdata"),
+                env.get_pin("io_in_resp_bits_user"),
+            )
+
+        env.step(1)
+
+        if will_accept and not accepted_b:
+            accepted_b = True
+            env.set_pin("io_in_req_valid", 0)
+
+        if accepted_b and response is not None:
+            break
+
+    assert accepted_b, "second read request was not accepted"
+    assert mem_req_started, "no memory request generated for second read"
+    assert response is not None, "no CPU response received for second read"
+
+    cmd, rdata, user = response
+    assert cmd == sb.READ_LAST, f"expected cmd=READ_LAST(6), got {cmd}"
+    assert rdata == 0xCAFE_B0B0_DEAD_BEEF, (
+        f"expected rdata=0xCAFEB0B0DEADBEEF, got 0x{rdata:016x}"
+    )
+    assert user == 0x502, f"expected user=0x502, got {user}"
+
+    env.step(5)

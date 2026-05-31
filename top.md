@@ -1,6 +1,6 @@
 # Markdown Index
 
-Date: 2026-05-28
+Date: 2026-05-30
 
 This file is the top-level map for the Markdown documents maintained for the Track1 NutShell Cache verification task. It records each document's role and path so the next work step can start from the right source without guessing.
 
@@ -78,6 +78,22 @@ This file is the top-level map for the Markdown documents maintained for the Tra
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/workflow_gap_analysis.md` | UCAgent workflow gap analysis. Maps the project against the 11-stage default workflow and 6-stage GenSpec workflow, identifies missing deliverables, and recommends an execution plan. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/workflow_gap_analysis_zh.md` | Chinese mirror of the UCAgent workflow gap analysis. |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/dir_014_015_016_guide.md` | Implementation guide for DIR-014/015/016 line coverage closure. Intended for Claude Code execution via UCAgent MCP. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/toffee_branch_coverage_gap.md` | Human-AI collaborative analysis of the toffee branch coverage reporting gap: why the LCOV HTML shows 85% (C++ level, 28,949 branches) while `code_coverage.json` contains 95.3% (RTL level, 494 branches). Documents root cause, data provenance with source-code evidence, impact assessment, and recommended fix. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/toffee_branch_coverage_gap_zh.md` | Chinese mirror of the toffee branch coverage gap analysis. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/coverage_closure_final.md` | Final coverage closure plan targeting 100% line, ~98% branch, and ~90% toggle. Tier-classified all uncovered items (P0 reachable / P1 complex / P2 waivable / P3 toggle), defined three UCAgent stages (A-C) with inspect→implement→verify→document instructions for AI agent execution. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/coverage_closure_final_zh.md` | Chinese mirror of the final coverage closure plan. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/line_coverage_100_stage.md` | Stage 11 UCAgent output. Records DIR-017 (needFlush) and DIR-018 (respToL1Last counter) results, coverage delta (1359/1361, 99.9%), and waiver decisions. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/branch_coverage_closure_stage.md` | Stage 12 UCAgent output. Records DIR-019 through DIR-022 results, branch coverage closure (471/471 = 100.0%), and Category N waiver documentation. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/toggle_coverage_improvement_stage.md` | Stage 13 UCAgent output. Records multi-seed random traffic enhancements, toggle coverage delta (24474/28227 → 24785/28227, +311), per-module breakdown, plateau analysis, and waiver categories T-A through T-F. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/toggle_coverage_waiver.md` | Toggle coverage waiver rationale. Categorizes remaining 3,280 toggle misses into six structural categories (T-A: SRAM bus bits, T-B: D-cache constants, T-C: LFSR, T-D: assertions, T-E: tie-offs, T-F: unused ports). Stage 17 max attempt achieved 88.4% final plateau. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/expr_coverage_closure_stage.md` | Stage 16 UCAgent output. Records expr coverage closure (131/137 → 137/137 = 100.0%) via Category O waiver for 6 SVA assertion/dead-logic expressions. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/expr_coverage_closure_stage_zh.md` | Stage 16 UCAgent output Chinese mirror. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/toggle_final_attempt_stage.md` | Stage 17 UCAgent output. Records final toggle improvement attempt (10 seeds × 200 steps, 64 addresses, 32 patterns), result (24947/28227 = 88.4%, +162), and plateau confirmation. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/toggle_final_attempt_stage_zh.md` | Stage 17 UCAgent output Chinese mirror. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/toggle_waiver_docs_stage.md` | Stage 18 UCAgent output. Records toggle waiver formalization across all GenSpec and project documentation. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/toggle_waiver_docs_stage_zh.md` | Stage 18 UCAgent output Chinese mirror. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/scripts/collect_coverage_multi.sh` | Multi-seed coverage collection script. Runs smoke + directed + corner + multi-seed random with configurable seeds/steps and generates RTL coverage HTML. |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/tests/random/test_random_multi_seed.py` | Multi-seed random test for toggle coverage. Runs N seeds sequentially with DUT reset between seeds; skips scoreboard checks (toggle-only). |
 
 ## Chinese / Mirror Documents
 

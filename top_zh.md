@@ -1,6 +1,6 @@
 # Markdown 索引
 
-日期：2026-05-28
+日期：2026-05-30
 
 本文件是 Track1 NutShell Cache 验证任务所维护 Markdown 文档的顶层索引，记录每份文档的角色和路径，方便后续工作步骤从正确的源文件开始。
 
@@ -128,6 +128,26 @@
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache/DataArray_spec_zh.md` | DataArray 子规范的中文镜像。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/unity_test/Cache/Replacement_spec_zh.md` | Replacement 子规范的中文镜像。 |
 | `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/uc_test_report/README_zh.md` | UC 测试报告索引的中文镜像。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/toffee_branch_coverage_gap.md` | 人机协同分析的 toffee 分支覆盖率报告遗漏：为何 LCOV HTML 显示 85%（C++ 级，28,949 个分支），而 `code_coverage.json` 包含 95.3%（RTL 级，494 个分支）。记录了根因、带源码证据的数据溯源、影响评估及优化建议。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/toffee_branch_coverage_gap_zh.md` | toffee 分支覆盖率遗漏分析的中文版本。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/coverage_closure_final.md` | 最终覆盖率闭环计划：目标行覆盖 100%、分支覆盖 ~98%、翻转覆盖 ~90%。按优先级四级分类所有未覆盖项（P0 可达/P1 复杂/P2 豁免/P3 翻转），定义了三个 UCAgent stage（A-C），含完整 inspect→implement→verify→document 执行指令。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/coverage_closure_final_zh.md` | 覆盖率闭环计划的中文版本。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/line_coverage_100_stage.md` | Stage 11 UCAgent 输出（英文）。记录 DIR-017（needFlush）和 DIR-018（respToL1Last 计数器）结果、覆盖增量（1359/1361，99.9%）及豁免决策。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/line_coverage_100_stage_zh.md` | Stage 11 UCAgent 输出中文镜像。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/branch_coverage_closure_stage.md` | Stage 12 UCAgent 输出（英文）。记录 DIR-019 至 DIR-022 结果、分支覆盖率闭环（471/471 = 100.0%）及 Category N 豁免文档。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/branch_coverage_closure_stage_zh.md` | Stage 12 UCAgent 输出中文镜像。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/toggle_coverage_improvement_stage.md` | Stage 13 UCAgent 输出（英文）。记录多 seed 随机流量增强、翻转覆盖增量（24474/28227 → 24785/28227，+311）、逐模块分解、平台期分析及 T-A 至 T-F 豁免类别。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/toggle_coverage_improvement_stage_zh.md` | Stage 13 UCAgent 输出中文镜像。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/toggle_coverage_waiver.md` | 翻转覆盖率豁免依据（英文）。将剩余 3,280 个翻转缺失分类为六个结构性类别（T-A：SRAM 总线位、T-B：D-cache 常量、T-C：LFSR、T-D：断言、T-E：固定信号、T-F：未使用端口）。Stage 17 最大尝试达成 88.4% 最终平台。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/toggle_coverage_waiver_zh.md` | 翻转覆盖率豁免依据中文镜像。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/expr_coverage_closure_stage.md` | Stage 16 UCAgent 输出（英文）。记录通过 Category O 豁免实现表达式覆盖率闭环（131/137 → 137/137 = 100.0%）。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/expr_coverage_closure_stage_zh.md` | Stage 16 UCAgent 输出中文镜像。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/toggle_final_attempt_stage.md` | Stage 17 UCAgent 输出（英文）。记录最终翻转提升尝试（10 seed × 200 步、64 地址、32 模式）、结果（24947/28227 = 88.4%，+162）及平台确认。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/toggle_final_attempt_stage_zh.md` | Stage 17 UCAgent 输出中文镜像。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/toggle_waiver_docs_stage.md` | Stage 18 UCAgent 输出（英文）。记录翻转豁免在全部 GenSpec 和项目文档中的正式化。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/docs/ucagent_output/toggle_waiver_docs_stage_zh.md` | Stage 18 UCAgent 输出中文镜像。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/scripts/collect_coverage_multi.sh` | 多 seed 覆盖率采集脚本。结合 smoke + directed + corner + 多 seed 随机运行，支持可配置 seed/步数，并生成 RTL 覆盖率 HTML。 |
+| `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/tests/random/test_random_multi_seed.py` | 面向翻转覆盖率的多 seed 随机测试。在 seed 间复位 DUT 顺序运行 N 个 seed；跳过 scoreboard 检查（仅翻转）。 |
 
 ## 更新规则
 

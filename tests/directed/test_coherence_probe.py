@@ -160,3 +160,71 @@ async def test_probe_hit_full_release_sequence(cache_env):
     assert beat_count >= 2, (
         f"expected at least 2 coh_resp_valid beats (probe response + release data), got {beat_count}"
     )
+
+
+@toffee_test.testcase
+async def test_internal_probe_miss_through_io_in_req(cache_env):
+    """DIR-021: Drive PROBE command through io_in_req (CPU-side probe, line 768).
+
+    This exercises the internal probe path in CacheStage3 where:
+      probe = io_in_valid & cmd==PROBE (line 511)
+    Unlike the external probe (io_out_coh_req_*), this enters through the
+    CPU request pipeline Arbiter→S1→S2→S3.
+
+    Sends PROBE to an empty cache → expects the state machine handles it.
+    """
+    env = cache_env
+    env.reset()
+
+    addr = 0x8000_A000
+
+    env.drive_cpu_request(sb.CpuRequest(cmd=sb.PROBE, addr=addr, user=0xC01))
+
+    accepted = False
+    for cycle in range(100):
+        if env.get_pin("io_in_req_valid") and env.get_pin("io_in_req_ready"):
+            accepted = True
+            env.clear_cpu_request()
+        env.step(1)
+        if accepted:
+            break
+
+    assert accepted, "internal PROBE request was not accepted through io_in_req"
+
+    env.step(20)
+
+
+@toffee_test.testcase
+async def test_internal_probe_hit_through_io_in_req(cache_env):
+    """DIR-021b: Internal probe hit — fill a line, then PROBE through io_in_req.
+
+    Covers the internal probe hit state transition (line 768: _T_27 branch)
+    and readBeatCnt assignment on probe hit (line 796).
+    """
+    env = cache_env
+    env.reset()
+
+    addr = 0x8000_B000
+    fill_data = 0xDEAD_BEEF_CAFE_BABE
+
+    resp, mem = env.send_cpu_request(
+        sb.CpuRequest(cmd=sb.READ, addr=addr, user=0xC02),
+        refill_data=fill_data,
+    )
+    env.scoreboard.check_read_response(resp, expected_data=fill_data, expected_user=0xC02)
+    env.scoreboard.check_single_read_burst(mem, expected_addr=addr)
+
+    env.drive_cpu_request(sb.CpuRequest(cmd=sb.PROBE, addr=addr, user=0xC03))
+
+    accepted = False
+    for cycle in range(100):
+        if env.get_pin("io_in_req_valid") and env.get_pin("io_in_req_ready"):
+            accepted = True
+            env.clear_cpu_request()
+        env.step(1)
+        if accepted:
+            break
+
+    assert accepted, "internal PROBE request was not accepted"
+
+    env.step(20)
