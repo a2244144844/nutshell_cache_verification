@@ -2,40 +2,53 @@
 
 本工作区用于 CCF Track1 UCAgent 赛题：以 UCAgent 辅助、人工审查的方式完成对 NutShell Cache 的验证。
 
+## 评审快速上手（3 条命令）
+
+1. **一键复现**：`make reproduce`
+   - 预期输出：`[reproduce] PASS`（回归 + 覆盖率 + bug 注入 + 恢复）
+
+2. **覆盖率报告**：
+   - RTL：`open build/reports/rtl_coverage.html` — Line 100.0% | Branch 100.0% | Toggle 88.4% | Expr 100.0%
+   - 功能覆盖：`open build/reports/cache_coverage.html` — 18 组、91 点、98 bins，全部 100%
+
+3. **关键文档**（推荐阅读顺序）：
+
+   | 文档 | 用途 |
+   |------|------|
+   | `docs/ai_collaboration_report.md` | AI-人工协同日志、缺陷对照表、Prompt 策略、17 个阶段 |
+   | `docs/verification_plan.md` | 分阶段验证计划与当前状态 |
+   | `docs/coverage_waiver_rationale.md` | 逐行豁免分析（15 个类别，48 行/表达式豁免） |
+   | `docs/gap_analysis_first_prize.md` | 一等奖差距分析与改进行动计划 |
+
 ## 当前状态
 
-- 本机已安装 UCAgent 和 Codex CLI。
-- UCAgent/Codex 和 UCAgent/Claude Code 联动已验证通过，且已产生针对 Cache 的 audit、backpressure、CRV/coverage、dirty-writeback、bug-injection、final report、flush 和 coherence probe 八个 stage 的证据记录。
-- GitLink 赛题环境仓库已克隆到 `upstream/env-xs-ov-00-nutshell-cache`。
+- 本机已安装 UCAgent 和 Claude Code CLI。
+- 18 个 UCAgent 阶段（0-17）通过 `configs/ucagent_track1_cache.yaml` 以 Claude Code 后端完成。
 - 选定 DUT 为 Picker 的 Cache 示例 RTL，已复制到 `rtl/dut/Cache.v`。
 - Picker 将选定 DUT 导出为 Python 类 `DUTCache`。
-- `scripts/run_smoke.sh` 已通过首个 reset/read/write smoke test。
-- 首个可复用的 Python 验证骨架已建立，位于 `src/env`、`src/monitor`、`src/scoreboard` 和 `src/utils`。
-- 定向测试目前覆盖了部分写掩码、同 cache line 内不同 word 偏移、完整 8-beat refill 顺序、无效路替换优先级、MMIO 旁路、flush 行为、coherence probe 命中/缺失、write miss、clean eviction、dirty-victim writeback/refill，以及 write miss dirty eviction 闭环。
-- `scripts/run_directed.sh` 目前通过全部 directed 测试，共 `23 passed in 1.05s`。
-- `scripts/run_regression.sh` 目前通过 smoke、directed、corner 测试，共 `26 passed in 1.34s`。
-- `scripts/collect_coverage.sh 7 18` 通过完整覆盖率采集运行，结果为 `27 passed`；Toffee 功能覆盖率模型为 12 个 group、31 个 point、37 个 bin，全部 100% covered。
-- 首个 Cache 专属 UCAgent audit stage 已完成，生成了 `docs/ucagent_output/stage_audit.md`。
-- UCAgent backpressure、CRV/coverage、dirty-writeback 闭环、bug-injection、final report、flush 和 coherence probe stage 已完成，生成了 `docs/ucagent_output/backpressure_stage.md`、`docs/ucagent_output/crv_coverage_stage.md`、`docs/ucagent_output/dirty_writeback_stage.md`、`docs/ucagent_output/bug_injection_stage.md`、`docs/ucagent_output/final_report_stage.md`、`docs/ucagent_output/flush_stage.md` 和 `docs/ucagent_output/coherence_probe_stage.md`。
-- `scripts/reproduce.sh` 是一键复现入口，已从清理生成物后的状态验证通过。
+- `make test-smoke` 已通过首个 reset/read/write smoke test。
+- 结构化验证环境位于 `src/env`、`src/monitor`、`src/scoreboard`、`src/utils`、`src/generator`。
+- 共 84 个测试，覆盖 smoke、directed、corner、random 及 multi-seed random。
+- 定向测试覆盖：部分写掩码、同行 word 偏移、refill beats、替换、MMIO 旁路、flush、coherence probe、write miss、clean eviction、dirty writeback、read-burst hit、write-miss dirty eviction、PREFETCH。
+- `make test-directed` 通过 `81 passed`。
+- `make test` 通过 `84 passed`。
+- `make coverage-multi` 通过，Toffee 功能覆盖率：18 组、91 点、98 bins，全部 100%。
+- RTL 覆盖率：**Line 1359/1359 (100.0%) | Branch 471/471 (100.0%) | Toggle 24947/28227 (88.4%) | Expr 137/137 (100.0%)**。
+- 48 行/表达式豁免，覆盖 Categories A-O（参见 `docs/coverage_waiver_rationale.md`）。
+- Toggle 豁免：3,280 个 toggle 缺失，Categories T-A~T-F（参见 `docs/toggle_coverage_waiver.md`）。
+- `make reproduce` 是一键复现入口，已从清理生成物后的状态验证通过。
+- Bug 注入证据记录在 `docs/bug_tracking.md`，保持在正常回归路径之外。
 
 ## UCAgent 集成状态
 
-当前验证进展真实且可复现。项目现已拥有八个 Cache 专属 UCAgent stage 产物，覆盖 audit、backpressure、CRV/coverage、dirty-writeback 闭环、bug-injection 证据、最终报告打包、flush 行为和 coherence probe。后续由其他 agent 完成的 write miss / eviction 定向补强已记录在 AI 协同报告中。
-
-- 已有工作：Codex 在本工作区中实现并运行了 Cache 验证文件。
-- 工作区外已验证：`instruction.md` 证明了本地 UCAgent → Codex → MCP `Complete` 路径可运行。
-- 工作区内已验证：`configs/ucagent_track1_cache.yaml` 通过 UCAgent/Codex 或 UCAgent/Claude Code 运行了已配置的 Cache stage，记录了 stage journal 并调用了 `Complete`。
-- 提交就绪：已配置的 UCAgent stage 已完成，post-coherence 定向测试干净通过，回归干净，可复现入口已验证通过。
-- Config 校验通过：`ucagent --emulate-config --force-stage-index 1` 识别了全部 stage 并选中 backpressure stage。
-- 最终报告打包已完成。参见 `docs/ucagent_output/final_report_stage.md`。
-- 集成计划：参见 `docs/ucagent_operation_plan.md`。
+全部 18 个 UCAgent 阶段（0-17）已完成，产物位于 `docs/ucagent_output/`。竞赛工作流定义在 `configs/ucagent_track1_cache.yaml`。集成计划：参见 `docs/ucagent_operation_plan.md`。
 
 ## 工作目录
 
 ```text
 competition/track1_nutshell_cache/
 ├── LICENSE
+├── Makefile
 ├── README.md
 ├── top.md
 ├── configs/
@@ -88,11 +101,15 @@ competition/track1_nutshell_cache/
 
 ## 验证完成
 
-当前提交包内计划的验证工作均已完成：
+当前计划的验证工作均已全部完成：
 
-1. 最终报告打包和可复现性清理已完成。
-2. Bug-injection harness 保持在正常回归路径之外，`scripts/run_regression.sh` 仍干净通过 `26 passed in 1.34s`。
-3. 完整可复现入口 `scripts/reproduce.sh` 已验证通过。
+1. Line 覆盖率：1359/1359 (100.0%)，21 行豁免（Categories A-K, D）。
+2. Branch 覆盖率：471/471 (100.0%)，23 个分支豁免（Categories L-N）。
+3. Expr 覆盖率：137/137 (100.0%)，6 个表达式豁免（Category O）。
+4. Toggle 覆盖率：24947/28227 (88.4%)，3,280 个 toggle 豁免（Categories T-A~T-F，基于文档）。
+5. 功能覆盖率：18 组、91 点、98 bins，全部 100%。
+6. Bug-injection harness 保持在正常回归路径之外；`make test` 干净通过 `84 passed`。
+7. 完整可复现入口 `make reproduce` 已验证通过。
 
 ## 模板对齐报告集
 
@@ -109,17 +126,17 @@ unity_test/
 在本工作区运行：
 
 ```sh
-scripts/reproduce.sh
+make reproduce
 ```
 
 它会依次运行正常回归、默认 seed `7` / `18` 条事务的覆盖率收集、预期失败的 bug 注入，以及关闭 bug 注入后的恢复路径。清理生成物可运行：
 
 ```sh
-scripts/clean_generated.sh
+make clean
 ```
 
 最新验证：
 
 ```text
-scripts/clean_generated.sh && scripts/reproduce.sh -> PASS
+make clean && make reproduce -> PASS
 ```

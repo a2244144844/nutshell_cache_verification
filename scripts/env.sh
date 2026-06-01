@@ -14,6 +14,10 @@ JAVA_HOME="$ROOT_DIR/local/jre17"
 MILL_HOME="$ROOT_DIR/local/mill"
 NUTSHELL_HOME="$ROOT_DIR/upstream/NutShell"
 
+# Portability guards: fail early if expected toolchain directories are missing
+[ -d "$PICKER_HOME" ] || { echo "ERROR: Picker not found at $PICKER_HOME. Run setup first." >&2; exit 1; }
+[ -d "$JAVA_HOME" ] || { echo "WARNING: JRE not found at $JAVA_HOME (only needed for Chisel/Scala builds)." >&2; }
+
 export PICKER_HOME
 export JAVA_HOME
 export MILL_HOME

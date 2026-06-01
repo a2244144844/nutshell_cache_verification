@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-REPO_ROOT="$(cd "$ROOT_DIR/../.." && pwd)"
+WORKSPACE_ROOT="$(cd "$ROOT_DIR/.." && pwd)"
 
 "$SCRIPT_DIR/export_cache_dut.sh"
 
@@ -24,14 +24,14 @@ rm -rf "$REPORT_DIR"
 mkdir -p "$REPORT_DIR"
 
 # Run full test suite and generate Toffee HTML report with funcov + line coverage
-"$REPO_ROOT/.venv/bin/python" -m pytest "$ROOT_DIR/tests/" -q \
+"$WORKSPACE_ROOT/.venv/bin/python" -m pytest "$ROOT_DIR/tests/" -q \
   --toffee-report \
   --report-dir "$REPORT_DIR" \
   --report-name cache_coverage.html \
   --report-dump-json
 
 # Also generate a Markdown coverage summary from legacy collector
-"$REPO_ROOT/.venv/bin/python" - <<'PY'
+"$WORKSPACE_ROOT/.venv/bin/python" - <<'PY'
 import json
 import os
 from pathlib import Path
@@ -224,12 +224,12 @@ echo ""
 echo "Generating RTL coverage HTML..."
 RTL_SRC="$ROOT_DIR/build/picker_cache/Cache.v"
 if [ -f "$RTL_SRC" ]; then
-  "$REPO_ROOT/.venv/bin/python" "$SCRIPT_DIR/generate_rtl_coverage_html.py" \
+  "$WORKSPACE_ROOT/.venv/bin/python" "$SCRIPT_DIR/generate_rtl_coverage_html.py" \
     -i "$REPORT_DIR/line_dat/code_coverage.json" \
     -o "$REPORT_DIR/rtl_coverage.html" \
     --rtl "$RTL_SRC"
 else
-  "$REPO_ROOT/.venv/bin/python" "$SCRIPT_DIR/generate_rtl_coverage_html.py" \
+  "$WORKSPACE_ROOT/.venv/bin/python" "$SCRIPT_DIR/generate_rtl_coverage_html.py" \
     -i "$REPORT_DIR/line_dat/code_coverage.json" \
     -o "$REPORT_DIR/rtl_coverage.html"
 fi

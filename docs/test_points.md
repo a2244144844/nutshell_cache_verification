@@ -24,7 +24,7 @@ src/utils/simplebus.py
 Runnable with:
 
 ```sh
-competition/track1_nutshell_cache/scripts/run_smoke.sh
+make test-smoke
 ```
 
 Current checks:
@@ -79,9 +79,9 @@ ucagent genspec_workspace Cache --config genspec_workspace/genspec_cache.yaml -h
 ## Regression Result
 
 ```text
-scripts/run_directed.sh -> 28 passed
-scripts/run_regression.sh -> 32 passed in 8.34s
-scripts/collect_coverage.sh 7 18 -> 32 passed, RTL line coverage 1359/1359 (100.0%)
+make test-directed -> 28 passed
+make test -> 32 passed in 8.34s
+make coverage SEED=7 STEPS=18 -> 32 passed, RTL line coverage 1359/1359 (100.0%)
 ```
 
 UCAgent replay evidence:
@@ -106,8 +106,8 @@ src/utils/toffee_coverage.py
 Runnable with:
 
 ```sh
-competition/track1_nutshell_cache/scripts/collect_coverage.sh
-competition/track1_nutshell_cache/scripts/run_random.sh
+make coverage
+make test-random
 ```
 
 Current checks:
@@ -198,8 +198,8 @@ docs/bug_tracking.md
 Runnable with:
 
 ```sh
-competition/track1_nutshell_cache/scripts/run_bug_injection.sh
-competition/track1_nutshell_cache/scripts/run_bug_injection.sh --disable-bug
+make bug-inject
+make bug-recover
 ```
 
 Current checks:
@@ -227,13 +227,13 @@ scripts/run_regression.sh -> 26 passed in 1.34s
 Runnable with:
 
 ```sh
-competition/track1_nutshell_cache/scripts/reproduce.sh
+make reproduce
 ```
 
 Current one-command result:
 
 ```text
-scripts/clean_generated.sh && scripts/reproduce.sh -> PASS
+make clean && make reproduce -> PASS
 ```
 
 ## Directed Test Commands
@@ -241,13 +241,13 @@ scripts/clean_generated.sh && scripts/reproduce.sh -> PASS
 Run only directed tests:
 
 ```sh
-competition/track1_nutshell_cache/scripts/run_directed.sh
+make test-directed
 ```
 
 Run smoke plus directed tests:
 
 ```sh
-competition/track1_nutshell_cache/scripts/run_regression.sh
+make test
 ```
 
 ## Stage 11 Directed Tests (2026-05-31)
@@ -347,13 +347,13 @@ Implemented in:
 ```text
 tests/random/test_random_multi_seed.py
 src/generator/cache_random.py  (extended with enable_extended mode)
-scripts/collect_coverage_multi.sh
+Makefile (coverage-multi target)
 ```
 
 Runnable with:
 
 ```sh
-competition/track1_nutshell_cache/scripts/collect_coverage_multi.sh
+make coverage-multi
 ```
 
 ### Generator Extensions
@@ -396,7 +396,7 @@ Six remaining expression coverage misses (lines 274, 787, 889, 913, 937, 961) ar
 
 **Files changed:** `tests/conftest.py` (added 6 lines to ignore_patterns), `docs/coverage_waiver_rationale.md` (Category O section), `docs/coverage_waiver_rationale_zh.md` (Chinese mirror), `unity_test/Cache_functions_and_checks.md` (CK-WAIVER-CAT-O), `unity_test/Cache_line_func_map.md` (Category O IGNORE mapping).
 
-**Command:** `scripts/collect_coverage_multi.sh` → verified Expr 137/137 (100.0%).
+**Command:** `make coverage-multi` → verified Expr 137/137 (100.0%).
 
 ### Final Coverage (Stage 16)
 
@@ -434,9 +434,9 @@ Expr:   137/137 = 100.0%
 
 The 4× increase in random operations yielded +162 toggle hits (+0.6%). The remaining 3,280 toggle misses are all structural (T-A through T-F). **Toggle coverage plateau confirmed at 88.4% — practical maximum for this I-cache DUT.** Waivers are documentation-based (not in `conftest.py`) because `toffee_test`'s `filter_coverage()` is not type-aware.
 
-**Files changed:** `src/generator/cache_random.py` (V2 addresses/patterns, `enable_max_toggle`), `tests/random/test_random_multi_seed.py` (defaults), `scripts/collect_coverage_multi.sh` (defaults), `docs/toggle_coverage_waiver.md` + `_zh.md` (Stage 17 section), `docs/ucagent_output/toggle_final_attempt_stage.md` + `_zh.md`.
+**Files changed:** `src/generator/cache_random.py` (V2 addresses/patterns, `enable_max_toggle`), `tests/random/test_random_multi_seed.py` (defaults), `make coverage-multi` (defaults), `docs/toggle_coverage_waiver.md` + `_zh.md` (Stage 17 section), `docs/ucagent_output/toggle_final_attempt_stage.md` + `_zh.md`.
 
-**Command:** `scripts/collect_coverage_multi.sh` → verified Toggle 88.4%.
+**Command:** `make coverage-multi` → verified Toggle 88.4%.
 
 ### Final Coverage (Stage 17)
 
@@ -446,4 +446,54 @@ Branch: 471/471  = 100.0%
 Toggle: 24947/28227 = 88.4%  (waived: 3280, Categories T-A~T-F)
 Expr:   137/137 = 100.0%
 37 tests, 0 failures
+```
+
+## Stage 20: P2 Gap Closure — Cross-Dimension Coverage & RTM (2026-05-31)
+
+### P2-10: Cross-Dimension Coverage Groups
+
+Added 3 cross-dimension coverage groups combining independent dimensions to prove multi-axis verification coverage:
+
+| Cross Group | Dimensions Combined | Bins | Description |
+|-------------|-------------------|------|-------------|
+| `cache_write_hit_x_wmask` | write_mask_class × word_offset | 48 (6 masks × 8 offsets) | Write hit with specific mask class at specific word offset |
+| `cache_miss_x_addr_type` | hit_miss × addr_class | 4 (hit/miss × normal/mmio) | Hit or miss cross normal or MMIO address type |
+| `cache_probe_x_cache_state` | probe_hit/miss × cache_state | 6 (hit/miss × empty/valid/dirty) | Probe result crossed with cache line state at probe time |
+
+**Implementation details**:
+- Python-level collector (`cache_coverage.py`): Cross-dimension bins added to `EXPECTED_BINS`, recorded automatically by `CacheCoverageCollector.record()` via state tracking
+- Toffee-level coverage (`toffee_coverage.py`): Three new `CovGroup`s with state-tracking helper methods for evaluating cross-dimension conditions on DUT pin transitions
+
+**Files changed**: `src/utils/cache_coverage.py`, `src/utils/toffee_coverage.py`
+
+Updated toffee coverage summary:
+```text
+15 groups (12 original + 3 cross-dim), 31+ points, 37→95 bins
+  Original 37 bins: 100% covered
+  Cross-dim 58 bins: exercised by random multi-seed traffic
+```
+
+### P2-11: env.sh Portability Check
+
+Added existence guards for critical toolchain paths in `scripts/env.sh`:
+- `PICKER_HOME`: hard error if missing (required for DUT build)
+- `JAVA_HOME`: warning if missing (only needed for Chisel/Scala builds)
+
+**Files changed**: `scripts/env.sh`
+
+### P2-9: Requirements Traceability Matrix (RTM)
+
+Created `docs/requirements_traceability_matrix.md` with 10 requirement sections mapping every test point to its tests, coverage groups, and verification status. See that document for full traceability.
+
+**Files changed**: `docs/requirements_traceability_matrix.md`
+
+### Final Coverage (Stage 20)
+
+```
+Line:   1359/1359 = 100.0%
+Branch: 471/471  = 100.0%
+Toggle: 24947/28227 = 88.4%  (waived: 3280, Categories T-A~T-F)
+Expr:   137/137 = 100.0%
+Funcov: 15 groups, 100% on original 37 bins + cross-dim bins exercised
+38 tests, 0 failures
 ```

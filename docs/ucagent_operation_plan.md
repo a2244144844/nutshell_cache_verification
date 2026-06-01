@@ -174,6 +174,95 @@ Current exercised stages:
 
 The current intended work item is final submission synchronization: update all top-level and mirror documents to the latest `30 passed` regression result, `26 passed` directed result, and 1359/1364 (99.6%) RTL line coverage, and clearly distinguish UCAgent-run stages from post-coherence direct agent work.
 
+## MCP Server Connection
+
+UCAgent can expose its verification tools via an MCP (Model Context Protocol) server, enabling any MCP-compatible client (Claude Code, Qwen, Codex, Gemini CLI, etc.) to interact with the verification workspace.
+
+### Start the MCP Server
+
+Run from the `competition/` directory:
+
+```bash
+printf '!import threading, time; threading.Thread(target=lambda: time.sleep(99999999), daemon=False).start()\nc\n' | \
+  .venv/bin/ucagent . Cache --mcp-server --mcp-server-host 127.0.0.1 --mcp-server-port 5002 --human
+```
+
+The keep-alive thread is necessary because the MCP server runs as a daemon thread; without a non-daemon thread, the process exits immediately after initialization.
+
+### One-Time DUT Directory Setup
+
+Before first start, ensure the DUT directory exists under the workspace:
+
+```bash
+mkdir -p competition/Cache
+cp competition/rtl/dut/Cache.v competition/rtl/dut/Cache.yaml competition/rtl/dut/Test.v competition/Cache/
+touch competition/Cache/__init__.py
+```
+
+### MCP Client Configuration
+
+Add to the MCP client's config file. For Claude Code, this goes in `.mcp.json` at the workspace root:
+
+```json
+{
+  "mcpServers": {
+    "ucagent": {
+      "type": "http",
+      "url": "http://127.0.0.1:5002/mcp"
+    }
+  }
+}
+```
+
+### Available MCP Tools (26)
+
+| Tool | Description |
+|---|---|
+| RoleInfo | Returns agent role info and basic guidance |
+| CurrentTips | Returns tips for the current stage |
+| Detail | Returns mission details with all stages |
+| Status | Returns current mission status |
+| Complete | Validates and completes current stage |
+| Check | Validates current stage without advancing |
+| GoToStage | Go to a specific stage by index |
+| Exit | Exit agent after all stages complete |
+| ReadTextFile | Read lines from a text file in workspace |
+| PathList | List files and directories |
+| GetFileInfo | Get file metadata (size, type, permissions) |
+| SearchText | Search text in files (regex/wildcard) |
+| FindFiles | Find files by pattern |
+| EditTextFile | Edit or create text files |
+| ReplaceStringInFile | Exact string replacement in files |
+| CopyFile | Copy files within workspace |
+| MoveFile | Move/rename files within workspace |
+| CreateDirectory | Create directories |
+| DeleteFile | Delete files or directories |
+| RunTestCases | Execute test cases (pytest) |
+| RunBashCommand | Run bash commands |
+| WorkDiff | Show git diff for workspace |
+| WorkCommit | Commit workspace changes |
+| StageJournal | Get current stage journal |
+| AllStageJournal | Get all stages' journals |
+| SetCurrentStageJournal | Set current stage journal |
+
+### Verify the Server
+
+```bash
+# Initialize MCP session
+curl -s -X POST http://127.0.0.1:5002/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
+
+# The server responds with serverInfo: {"name":"UnityTest","version":"1.27.1"}
+```
+
+### Stop the Server
+
+```bash
+pkill -f "ucagent . Cache"
+```
+
 ## Reporting Rule
 
 Every UCAgent-driven stage should leave a report entry with:

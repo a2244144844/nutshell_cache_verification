@@ -3,13 +3,14 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-REPO_ROOT="$(cd "$ROOT_DIR/../.." && pwd)"
-
-if [ -f "$REPO_ROOT/.venv/bin/activate" ]; then
-  source "$REPO_ROOT/.venv/bin/activate"
-fi
+WORKSPACE_ROOT="$(cd "$ROOT_DIR/.." && pwd)"
 
 source "$SCRIPT_DIR/env.sh"
+
+# Activate venv so CMake finds Python 3.11 instead of Homebrew 3.14
+if [ -f "$WORKSPACE_ROOT/.venv/bin/activate" ]; then
+  source "$WORKSPACE_ROOT/.venv/bin/activate"
+fi
 
 OUT_DIR="$ROOT_DIR/build/picker_cache"
 rm -rf "$OUT_DIR"

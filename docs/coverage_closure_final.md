@@ -218,9 +218,9 @@ Below are the UCAgent stage configurations an AI agent should execute in order. 
    - Target: lines 605, 608, 610
    - If unreachable in I-cache after 3 attempts → classify as P2, update waiver doc
 
-4. Run scripts/run_directed.sh → must pass
-5. Run scripts/run_regression.sh → must pass
-6. Run scripts/collect_coverage.sh 7 18 → verify line coverage delta
+4. Run make test-directed → must pass
+5. Run make test → must pass
+6. Run make coverage SEED=7 STEPS=18 → verify line coverage delta
 
 7. Create docs/ucagent_output/line_coverage_100_stage.md with:
    - Changed files, commands run, exact pass/fail results
@@ -279,9 +279,9 @@ Below are the UCAgent stage configurations an AI agent should execute in order. 
    - state2=2'h2 is reached during memory response handling
    - Add stimulus to trigger the else-if branch
 
-7. Run scripts/run_directed.sh → must pass
-8. Run scripts/run_regression.sh → must pass
-9. Run scripts/collect_coverage.sh 7 18 → verify branch coverage delta
+7. Run make test-directed → must pass
+8. Run make test → must pass
+9. Run make coverage SEED=7 STEPS=18 → verify branch coverage delta
 
 10. Create docs/ucagent_output/branch_coverage_closure_stage.md
 11. Update docs/test_points.md, docs/ai_collaboration_report.md, docs/coverage_waiver_rationale.md
@@ -322,7 +322,7 @@ Below are the UCAgent stage configurations an AI agent should execute in order. 
    - Each seed runs CACHE_RANDOM_STEPS=100
 
 4. Run multi-seed coverage collection
-5. Run scripts/run_regression.sh → must pass
+5. Run make test → must pass
 
 6. Document waivable toggle categories:
    - Create docs/toggle_coverage_waiver.md with these categories:
@@ -389,9 +389,9 @@ Assertion conditions: $fwrite branching signals
 1. **Work directory**: `/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache`
 2. **Environment**: `source scripts/env.sh` before any command
 3. **Python**: `/Users/zzy/Workspace/ucagent/.venv/bin/python`
-4. **DUT export**: `scripts/export_cache_dut.sh` (called automatically by test scripts)
+4. **DUT export**: `make export` (called automatically by test scripts)
 5. **Key constraint**: The DUT is configured as **I-cache** (`ro.B = false`). D-cache-specific signals (forwarding, io_flush[1]) are unreachable.
 6. **Do NOT modify** `rtl/dut/Cache.v` — all changes must be in test files, conftest.py, or documentation.
-7. **After each stage**, run `scripts/run_regression.sh` to verify no regressions.
+7. **After each stage**, run `make test` to verify no regressions.
 8. **Before calling Complete**, ensure all output files exist and contain the required evidence.
 9. **Waiver syntax**: In `tests/conftest.py`, use `"Cache.v:line1,range1-range2"` to waive specific lines. Ranges like `202-207` cover lines 202,203,204,205,206,207.

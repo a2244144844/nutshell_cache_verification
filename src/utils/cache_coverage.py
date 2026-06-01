@@ -9,13 +9,19 @@ from src.utils import simplebus as sb
 
 
 EXPECTED_BINS = {
-    "cmd_type": ("read", "write"),
+    "cmd_type": ("read", "write", "probe"),
     "hit_miss_proxy": ("hit", "miss"),
     "write_mask_class": ("none", "byte", "adjacent", "low_half", "high_half", "full", "sparse"),
     "word_offset": tuple(str(i) for i in range(8)),
     "refill_path": ("clean_miss_refill", "read_hit", "write_hit", "dirty_miss_writeback_refill",
                      "write_miss_clean_refill", "write_miss_dirty_refill"),
     "write_miss": ("clean", "dirty", "none"),
+    # Cross-dimension groups (P2-10)
+    "write_hit_x_wmask": tuple(f"{m}_{o}" for m in ("byte", "adjacent", "low_half", "high_half", "full", "sparse")
+                                for o in range(8)),
+    "miss_x_addr_type": ("hit_normal", "hit_mmio", "miss_normal"),
+    "probe_x_cache_state": ("probe_hit_valid", "probe_hit_dirty",
+                            "probe_miss_empty", "probe_miss_valid", "probe_miss_dirty"),
 }
 
 
@@ -48,6 +54,12 @@ class CacheCoverageCollector:
     def __init__(self):
         self.counters = {name: Counter() for name in EXPECTED_BINS}
         self.transactions = []
+        self._line_dirty: Dict[int, bool] = {}
+
+    @staticmethod
+    def _is_mmio(addr: int) -> bool:
+        return ((addr ^ 0x30000000) & 0xF0000000) == 0 or \
+               ((addr ^ 0x40000000) & 0xC0000000) == 0
 
     def record(self, *, request: sb.CpuRequest, mem_requests, response):
         hit_miss_proxy = "hit" if not mem_requests else "miss"
@@ -57,19 +69,43 @@ class CacheCoverageCollector:
             write_miss = "dirty" if has_writeback else "clean"
         else:
             write_miss = "none"
+        cmd_type = "read" if request.cmd == sb.READ else ("write" if request.cmd == sb.WRITE else "probe")
+        wmask_class = classify_write_mask(request.wmask)
+        word_offset = str((request.addr >> 3) & 0x7)
+        line_base = request.addr & ~0x3F
+        is_mmio = self._is_mmio(request.addr)
+        addr_class = "mmio" if is_mmio else "normal"
+
         entry = {
-            "cmd_type": "read" if request.cmd == sb.READ else "write",
+            "cmd_type": cmd_type,
             "hit_miss_proxy": hit_miss_proxy,
-            "write_mask_class": classify_write_mask(request.wmask),
-            "word_offset": str((request.addr >> 3) & 0x7),
+            "write_mask_class": wmask_class,
+            "word_offset": word_offset,
             "refill_path": refill_path,
             "write_miss": write_miss,
             "user": request.user,
             "response_cmd": response.cmd,
+            # Cross-dimension (P2-10)
+            "write_hit_x_wmask": (f"{wmask_class}_{word_offset}"
+                                  if cmd_type == "write" and hit_miss_proxy == "hit" and wmask_class != "none"
+                                  else None),
+            "miss_x_addr_type": f"{hit_miss_proxy}_{addr_class}",
         }
+        # Track dirty state for probe cross-dimension
+        if cmd_type == "write" and request.wmask != 0 and not is_mmio:
+            self._line_dirty[line_base] = True
+        if cmd_type == "probe":
+            dirty = self._line_dirty.get(line_base, False)
+            valid = line_base in self._line_dirty
+            if hit_miss_proxy == "hit":
+                state = "dirty" if dirty else ("valid" if valid else "empty")
+            else:
+                state = "dirty" if dirty else ("valid" if valid else "empty")
+            entry["probe_x_cache_state"] = f"probe_{hit_miss_proxy}_{state}"
+
         self.transactions.append(entry)
         for key, value in entry.items():
-            if key in self.counters:
+            if key in self.counters and value is not None:
                 self.counters[key][value] += 1
 
     def summary(self) -> Dict[str, Dict[str, int]]:

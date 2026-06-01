@@ -203,9 +203,9 @@ def test_prefetch_response_suppression():
    - 目标：第 605、608、610 行
    - 若在 I-cache 中 3 次尝试后不可达 → 归为 P2，更新豁免文档
 
-4. 运行 scripts/run_directed.sh → 必须通过
-5. 运行 scripts/run_regression.sh → 必须通过
-6. 运行 scripts/collect_coverage.sh 7 18 → 验证行覆盖增量
+4. 运行 make test-directed → 必须通过
+5. 运行 make test → 必须通过
+6. 运行 make coverage SEED=7 STEPS=18 → 验证行覆盖增量
 
 7. 创建 docs/ucagent_output/line_coverage_100_stage.md，包含：
    - 变更文件、运行的命令、精确的通过/失败结果
@@ -264,9 +264,9 @@ def test_prefetch_response_suppression():
    - state2=2'h2 在内存响应处理期间达到
    - 增加触发 else-if 分支的激励
 
-7. 运行 scripts/run_directed.sh → 必须通过
-8. 运行 scripts/run_regression.sh → 必须通过
-9. 运行 scripts/collect_coverage.sh 7 18 → 验证分支覆盖增量
+7. 运行 make test-directed → 必须通过
+8. 运行 make test → 必须通过
+9. 运行 make coverage SEED=7 STEPS=18 → 验证分支覆盖增量
 
 10. 创建 docs/ucagent_output/branch_coverage_closure_stage.md
 11. 更新 docs/test_points.md、docs/ai_collaboration_report.md、docs/coverage_waiver_rationale.md
@@ -307,7 +307,7 @@ def test_prefetch_response_suppression():
    - 每种种子运行 CACHE_RANDOM_STEPS=100
 
 4. 运行多种子覆盖率收集
-5. 运行 scripts/run_regression.sh → 必须通过
+5. 运行 make test → 必须通过
 
 6. 记录可豁免的翻转类别：
    - 创建 docs/toggle_coverage_waiver.md，包含以下类别：
@@ -374,9 +374,9 @@ LFSR：64-bit 全周期翻转不可行
 1. **工作目录**：`/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache`
 2. **环境准备**：执行任何命令前先 `source scripts/env.sh`
 3. **Python 路径**：`/Users/zzy/Workspace/ucagent/.venv/bin/python`
-4. **DUT 导出**：`scripts/export_cache_dut.sh`（测试脚本中自动调用）
+4. **DUT 导出**：`make export`（测试脚本中自动调用）
 5. **关键约束**：DUT 配置为 **I-cache**（`ro.B = false`）。D-cache 专用信号（forwarding、io_flush[1]）不可达。
 6. **禁止修改** `rtl/dut/Cache.v` — 所有变更仅限于测试文件、conftest.py 或文档。
-7. **每个 stage 完成后**，运行 `scripts/run_regression.sh` 验证无回归。
+7. **每个 stage 完成后**，运行 `make test` 验证无回归。
 8. **调用 Complete 之前**，确保所有产出文件存在且包含所需证据。
 9. **豁免语法**：在 `tests/conftest.py` 中使用 `"Cache.v:line1,range1-range2"` 来豁免特定行。范围如 `202-207` 覆盖第 202、203、204、205、206、207 行。

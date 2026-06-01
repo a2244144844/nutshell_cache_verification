@@ -47,14 +47,14 @@ Primary command:
 
 ```sh
 cd /Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache
-scripts/reproduce.sh
+make reproduce
 ```
 
 Clean rebuild path:
 
 ```sh
-scripts/clean_generated.sh
-scripts/reproduce.sh
+make clean
+make reproduce
 ```
 
 ## Submission Notes

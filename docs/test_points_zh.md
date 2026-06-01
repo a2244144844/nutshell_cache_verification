@@ -24,7 +24,7 @@ src/utils/simplebus.py
 可通过以下命令运行：
 
 ```sh
-competition/track1_nutshell_cache/scripts/run_smoke.sh
+make test-smoke
 ```
 
 当前检查点：
@@ -78,8 +78,8 @@ src/utils/toffee_coverage.py
 可通过以下命令运行：
 
 ```sh
-competition/track1_nutshell_cache/scripts/collect_coverage.sh
-competition/track1_nutshell_cache/scripts/run_random.sh
+make coverage
+make test-random
 ```
 
 当前检查点：
@@ -129,8 +129,8 @@ docs/bug_tracking.md
 可通过以下命令运行：
 
 ```sh
-competition/track1_nutshell_cache/scripts/run_bug_injection.sh
-competition/track1_nutshell_cache/scripts/run_bug_injection.sh --disable-bug
+make bug-inject
+make bug-recover
 ```
 
 当前检查点：
@@ -158,13 +158,13 @@ scripts/run_regression.sh -> 26 passed in 1.34s
 可通过以下命令运行：
 
 ```sh
-competition/track1_nutshell_cache/scripts/reproduce.sh
+make reproduce
 ```
 
 当前一键命令结果：
 
 ```text
-scripts/clean_generated.sh && scripts/reproduce.sh -> PASS
+make clean && make reproduce -> PASS
 ```
 
 ## 定向测试命令
@@ -172,13 +172,13 @@ scripts/clean_generated.sh && scripts/reproduce.sh -> PASS
 仅运行定向测试：
 
 ```sh
-competition/track1_nutshell_cache/scripts/run_directed.sh
+make test-directed
 ```
 
 运行 smoke 加定向测试：
 
 ```sh
-competition/track1_nutshell_cache/scripts/run_regression.sh
+make test
 ```
 
 ## Stage 11 定向测试（2026-05-31）
@@ -278,13 +278,13 @@ Expr:   131/137 = 95.6%
 ```text
 tests/random/test_random_multi_seed.py
 src/generator/cache_random.py  （扩展 enable_extended 模式）
-scripts/collect_coverage_multi.sh
+make coverage-multi
 ```
 
 可运行：
 
 ```sh
-competition/track1_nutshell_cache/scripts/collect_coverage_multi.sh
+make coverage-multi
 ```
 
 ### 生成器扩展
@@ -327,7 +327,7 @@ Expr:   137/137 = 100.0%  (from 131/137 = 95.6%, Category O 豁免, Stage 16)
 
 **变更文件：** `tests/conftest.py`（向 ignore_patterns 添加 6 行）、`docs/coverage_waiver_rationale.md`（Category O 章节）、`docs/coverage_waiver_rationale_zh.md`（中文镜像）、`unity_test/Cache_functions_and_checks.md`（CK-WAIVER-CAT-O）、`unity_test/Cache_line_func_map.md`（Category O IGNORE 映射）。
 
-**命令：** `scripts/collect_coverage_multi.sh` → 验证 Expr 137/137 (100.0%)。
+**命令：** `make coverage-multi` → 验证 Expr 137/137 (100.0%)。
 
 ### Stage 16 最终覆盖率
 
@@ -365,9 +365,9 @@ Expr:   137/137 = 100.0%
 
 随机操作量增加到 4 倍，获得 +162 次翻转命中（+0.6%）。剩余 3,280 次翻转缺失全部属于结构性类别（T-A 至 T-F）。**翻转覆盖率平台期确认在 88.4%——本 I-cache DUT 的实际最大值。** 豁免采用文档化方式（不编码在 `conftest.py` 中），因为 `toffee_test` 的 `filter_coverage()` 不具备类型感知。
 
-**变更文件：** `src/generator/cache_random.py`（V2 地址/模式、`enable_max_toggle`）、`tests/random/test_random_multi_seed.py`（默认值）、`scripts/collect_coverage_multi.sh`（默认值）、`docs/toggle_coverage_waiver.md` + `_zh.md`（Stage 17 章节）、`docs/ucagent_output/toggle_final_attempt_stage.md` + `_zh.md`。
+**变更文件：** `src/generator/cache_random.py`（V2 地址/模式、`enable_max_toggle`）、`tests/random/test_random_multi_seed.py`（默认值）、`make coverage-multi`（默认值）、`docs/toggle_coverage_waiver.md` + `_zh.md`（Stage 17 章节）、`docs/ucagent_output/toggle_final_attempt_stage.md` + `_zh.md`。
 
-**命令：** `scripts/collect_coverage_multi.sh` → 验证 Toggle 88.4%。
+**命令：** `make coverage-multi` → 验证 Toggle 88.4%。
 
 ### Stage 17 最终覆盖率
 

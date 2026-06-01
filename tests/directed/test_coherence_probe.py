@@ -228,3 +228,115 @@ async def test_internal_probe_hit_through_io_in_req(cache_env):
     assert accepted, "internal PROBE request was not accepted"
 
     env.step(20)
+
+
+@toffee_test.testcase
+async def test_probe_hit_valid_state(cache_env):
+    """Probe hit on a valid (clean) line: fill a line via READ miss, then
+    probe the same address. The line is valid but not dirty."""
+    env = cache_env
+    env.reset()
+
+    addr = 0x8000_C000
+    fill_data = 0x1111_2222_3333_4444
+
+    resp, mem = env.send_cpu_request(
+        sb.CpuRequest(cmd=sb.READ, addr=addr, user=0x801),
+        refill_data=fill_data,
+    )
+    env.scoreboard.check_read_response(resp, expected_data=fill_data, expected_user=0x801)
+    env.scoreboard.check_single_read_burst(mem, expected_addr=addr)
+
+    # Step a few cycles to ensure state propagation
+    env.step(5)
+
+    resp_cmd, resp_rdata = _drive_probe(env, addr)
+    assert resp_cmd == 0xC, f"expected probe hit cmd=0xc on valid line, got 0x{resp_cmd:x}"
+
+
+@toffee_test.testcase
+async def test_probe_hit_dirty_state(cache_env):
+    """Probe hit on a dirty line: fill a line, write hit to dirty it, then
+    probe the same address."""
+    env = cache_env
+    env.reset()
+
+    addr = 0x8000_D000
+    fill_data = 0xAAAA_BBBB_CCCC_DDDD
+    write_data = 0xDEAD_BEEF_0000_0000
+
+    resp, mem = env.send_cpu_request(
+        sb.CpuRequest(cmd=sb.READ, addr=addr, user=0x802),
+        refill_data=fill_data,
+    )
+    env.scoreboard.check_read_response(resp, expected_data=fill_data, expected_user=0x802)
+    env.scoreboard.check_single_read_burst(mem, expected_addr=addr)
+
+    # Write hit to dirty the line
+    resp, mem = env.send_cpu_request(
+        sb.CpuRequest(cmd=sb.WRITE, addr=addr, wmask=0xFF, wdata=write_data, user=0x803),
+    )
+    env.scoreboard.check_write_response(resp, expected_user=0x803)
+
+    env.step(5)
+
+    resp_cmd, resp_rdata = _drive_probe(env, addr)
+    assert resp_cmd == 0xC, f"expected probe hit cmd=0xc on dirty line, got 0x{resp_cmd:x}"
+
+
+@toffee_test.testcase
+async def test_probe_miss_valid_state(cache_env):
+    """Probe miss with valid lines present: fill a line at addr A, then
+    probe a different address B (same set). The miss occurs while a valid
+    line exists in the cache."""
+    env = cache_env
+    env.reset()
+
+    fill_addr = 0x8000_E000
+    probe_addr = 0x8000_E100  # different line, same set (if 4-way, offset by >256B)
+    fill_data = 0x5555_6666_7777_8888
+
+    resp, mem = env.send_cpu_request(
+        sb.CpuRequest(cmd=sb.READ, addr=fill_addr, user=0x804),
+        refill_data=fill_data,
+    )
+    env.scoreboard.check_read_response(resp, expected_data=fill_data, expected_user=0x804)
+    env.scoreboard.check_single_read_burst(mem, expected_addr=fill_addr)
+
+    env.step(5)
+
+    resp_cmd, resp_rdata = _drive_probe(env, probe_addr)
+    assert resp_cmd == 0x8, f"expected probe miss cmd=0x8 with valid lines present, got 0x{resp_cmd:x}"
+
+
+@toffee_test.testcase
+async def test_probe_miss_dirty_state(cache_env):
+    """Probe miss with dirty lines present: fill and dirty a line at addr A,
+    then probe a different address B. The miss occurs while a dirty line
+    exists in the cache."""
+    env = cache_env
+    env.reset()
+
+    fill_addr = 0x8000_F000
+    probe_addr = 0x8000_F100
+    fill_data = 0x9999_AAAA_BBBB_CCCC
+    write_data = 0xFFFF_0000_FFFF_0000
+
+    # Fill the line
+    resp, mem = env.send_cpu_request(
+        sb.CpuRequest(cmd=sb.READ, addr=fill_addr, user=0x805),
+        refill_data=fill_data,
+    )
+    env.scoreboard.check_read_response(resp, expected_data=fill_data, expected_user=0x805)
+    env.scoreboard.check_single_read_burst(mem, expected_addr=fill_addr)
+
+    # Write hit to dirty it
+    resp, mem = env.send_cpu_request(
+        sb.CpuRequest(cmd=sb.WRITE, addr=fill_addr, wmask=0xFF, wdata=write_data, user=0x806),
+    )
+    env.scoreboard.check_write_response(resp, expected_user=0x806)
+
+    env.step(5)
+
+    resp_cmd, resp_rdata = _drive_probe(env, probe_addr)
+    assert resp_cmd == 0x8, f"expected probe miss cmd=0x8 with dirty lines present, got 0x{resp_cmd:x}"

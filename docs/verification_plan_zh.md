@@ -51,15 +51,15 @@ CRV/coverage 结果：
 
 - Stage：`crv_coverage_bootstrap`
 - 输出：`docs/ucagent_output/crv_coverage_stage.md` 和 `docs/coverage_report.md`
-- 当前结果：`scripts/collect_coverage.sh 7 18` 以 `27 passed` 通过；`scripts/run_regression.sh` 以 `26 passed in 1.34s` 通过
-- 已知缺口：当前功能覆盖率 bootstrap 集合中无缺口。
+- 当前结果：`scripts/collect_coverage_multi.sh` 以 `37 passed` 通过；`scripts/run_regression.sh` 以 `37 passed` 通过
+- 已知缺口：当前功能覆盖率 12 groups, 31 points, 37 bins 全部 100% covered。
 
 Dirty writeback 闭环结果：
 
 - Stage：`dirty_writeback_coverage_closure`
 - 输出：`docs/ucagent_output/dirty_writeback_stage.md` 和 `docs/coverage_report.md`
-- 当前结果：`scripts/collect_coverage.sh 7 18` 以 `27 passed` 通过；`scripts/run_regression.sh` 以 `26 passed in 1.34s` 通过
-- 覆盖率增量：`dirty_miss_writeback_refill` 从 `0` 变为 `1`。
+- 当前结果：`scripts/collect_coverage_multi.sh` 以 `37 passed` 通过；`scripts/run_regression.sh` 以 `37 passed` 通过
+- 覆盖率增量：`dirty_miss_writeback_refill` 从 `0` 变为 `1`；后续已扩展至 15 groups, 95 bins（含 P2-10 跨维度覆盖率组）。
 
 ## Phase 0：工作区和源文件准备
 
@@ -158,9 +158,9 @@ Dirty writeback 闭环结果：
 - `tests/directed/test_clean_eviction.py` 覆盖无写回的 clean victim 替换。
 - `tests/directed/test_write_miss_dirty_eviction.py` 覆盖 write miss dirty eviction、writeback-before-refill 顺序以及 refill 后的部分掩码写合并。
 - `scripts/run_directed.sh` 和 `scripts/run_regression.sh` 提供仅定向测试和 smoke+定向测试命令。
-- 当前定向测试结果：`scripts/run_directed.sh` 以 `23 passed in 1.05s` 通过。
-- 当前回归结果：`scripts/run_regression.sh` 以 `26 passed in 1.34s` 通过。
-- 当前 UCAgent audit 结果：`configs/ucagent_track1_cache.yaml` stage `cache_regression_audit` 通过并记录 `docs/ucagent_output/stage_audit.md`。
+- 当前定向测试结果：`scripts/run_directed.sh` 以 `27 passed` 通过。
+- 当前回归结果：`scripts/run_regression.sh` 以 `37 passed` 通过。
+- 当前 UCAgent 结果：18 个 stage（0-17）已通过 `configs/ucagent_track1_cache.yaml` 配合 Claude Code 后端完成；所有 stage 产物位于 `docs/ucagent_output/`。
 
 ## Phase 3：CRV 与覆盖率闭环
 
@@ -222,7 +222,8 @@ Dirty writeback 闭环结果：
 - `tests/injected_bug/run_bug_injection.py` 注入参考模型预期数据一位翻转。
 - 默认运行触发 `CacheScoreboard.check_read_response()`，期望值为 `0x1122334455667789`，DUT 实际返回 `0x1122334455667788`。
 - `--disable-bug` 使用干净参考模型运行同一流程并成功退出。
-- 正常 `scripts/run_regression.sh` 套件保持干净，通过 `26 passed in 1.34s`。
+- 正常 `scripts/run_regression.sh` 套件保持干净，通过 `37 passed`。
+- Bug 注入扩展已完成：`tests/injected_bug/bug_003_address_corruption.py`、`bug_004_dirty_bit_loss.py`、`bug_005_refill_scramble.py`、`bug_006_race_condition.py`。
 
 ## Phase 5：最终报告与可复现性
 
@@ -248,4 +249,8 @@ Dirty writeback 闭环结果：
 - `scripts/run_bug_injection.sh` 包装受控 bug-injection harness，支持 `--disable-bug` 恢复模式。
 - `README.md`、`docs/ai_collaboration_report.md` 和 `docs/coverage_report.md` 已经过 UCAgent stage 与 post-coherence directed closure 迭代。
 - 最终报告打包已在 post-final directed tests 后刷新。`docs/ucagent_output/final_report_stage.md` 记录审查文件、命令结果、提交检查清单和剩余风险。
-- 最新验证：`scripts/run_directed.sh -> 23 passed in 1.05s`；`scripts/run_regression.sh -> 26 passed in 1.34s`；`scripts/reproduce.sh -> [reproduce] PASS`。
+- 最新验证：`scripts/run_directed.sh -> 27 passed`；`scripts/run_regression.sh -> 37 passed`；`scripts/collect_coverage_multi.sh -> 37 passed`；`scripts/reproduce.sh -> [reproduce] PASS`。
+- RTL 行覆盖率：**1359/1359 (100.0%)**。
+- RTL 分支覆盖率：**471/471 (100.0%)**。
+- RTL 表达式覆盖率：**137/137 (100.0%)**。
+- RTL 翻转覆盖率：**24947/28227 (88.4%)**。

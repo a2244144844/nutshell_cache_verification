@@ -50,7 +50,7 @@
 
 ```sh
 cd /Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache
-scripts/reproduce.sh
+make reproduce
 ```
 
 ## 提交说明

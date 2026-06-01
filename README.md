@@ -2,42 +2,53 @@
 
 This workspace is for the CCF Track1 UCAgent competition task: verifying the NutShell Cache with UCAgent-assisted, human-reviewed verification engineering.
 
+## Reviewer Quick Start (3 Commands)
+
+1. **Reproduce**: `make reproduce`
+   - Expected: `[reproduce] PASS` (regression + coverage + bug injection + recovery)
+
+2. **Coverage Reports**:
+   - RTL: `open build/reports/rtl_coverage.html` — Line 100.0% | Branch 100.0% | Toggle 88.4% | Expr 100.0%
+   - Funcov: `open build/reports/cache_coverage.html` — 18 groups, 91 points, 98 bins, all 100%
+
+3. **Key Documents** (recommended reading order):
+
+   | Doc | Purpose |
+   |-----|---------|
+   | `docs/ai_collaboration_report.md` | AI-human collaboration log, defects table, prompt strategy, 17 stages |
+   | `docs/verification_plan.md` | Phased verification plan with current status |
+   | `docs/coverage_waiver_rationale.md` | Per-line waiver analysis (15 categories, 48 waived lines/expressions) |
+   | `docs/gap_analysis_first_prize.md` | First-prize gap analysis and improvement action plan |
+
 ## Current Status
 
-- UCAgent and Codex CLI are available on this machine.
-- UCAgent/Codex and UCAgent/Claude Code linkage has been verified separately and now has Cache-specific audit, backpressure, CRV/coverage, dirty-writeback, bug-injection, final-report, flush, and coherence-probe stage evidence.
-- The GitLink competition environment repository has been cloned under `upstream/env-xs-ov-00-nutshell-cache`.
+- UCAgent and Claude Code CLI are available on this machine.
+- 18 UCAgent stages (0-17) completed through `configs/ucagent_track1_cache.yaml` with Claude Code backend.
 - The selected DUT is Picker's Cache example RTL copied to `rtl/dut/Cache.v`.
 - Picker exports the selected DUT as Python class `DUTCache`.
-- `scripts/run_smoke.sh` passes the first reset/read/write smoke test.
-- The first reusable Python verification skeleton exists under `src/env`, `src/monitor`, `src/scoreboard`, and `src/utils`.
-- Directed tests now cover partial write masks, same-line word offsets, full 8-beat refill order, invalid-way replacement priority, MMIO bypass, flush behavior (including needFlush de-assertion), coherence probe hit/miss (including full release sequence), read-burst hit, write miss, clean eviction, dirty-victim writeback/refill, and write-miss dirty eviction closure.
-- `scripts/run_directed.sh` currently passes directed tests with `26 passed in 5.10s`.
-- `scripts/run_regression.sh` currently passes smoke, directed, corner, and random tests with `30 passed in 5.43s`.
-- `scripts/collect_coverage.sh 7 18` passes the full coverage collection run with `30 passed` and the Toffee functional coverage model reports 12 groups, 31 points, and 37 bins all 100% covered.
-- Verilator RTL line coverage: **1359/1364 (99.6%)** with 5 remaining waived lines (4 Category J D-cache ports + 1 residual).
-- `scripts/reproduce.sh` is the one-command reproducibility entry and passes from a cleaned generated-artifact state.
-- The first Cache-specific UCAgent audit stage completed and generated `docs/ucagent_output/stage_audit.md`.
-- The UCAgent backpressure, CRV/coverage, dirty-writeback closure, bug-injection, final report packaging, flush behavior, coherence-probe, write-miss eviction replay, GenSpec, and line coverage closure stages completed and generated corresponding `docs/ucagent_output/*.md` artifacts.
-- The bug-injection evidence is recorded in `docs/bug_tracking.md`; the intentional failure is kept out of the normal regression suite.
+- `make test-smoke` passes the first reset/read/write smoke test.
+- Structured verification environment under `src/env`, `src/monitor`, `src/scoreboard`, `src/utils`, and `src/generator`.
+- 84 tests across smoke, directed, corner, random, and multi-seed random suites.
+- Directed tests cover: partial write masks, word offsets, refill beats, replacement, MMIO bypass, flush, coherence probe, write miss, clean eviction, dirty writeback, read-burst hit, write-miss dirty eviction, and PREFETCH.
+- `make test-directed` passes with `81 passed`.
+- `make test` passes with `84 passed`.
+- `make coverage-multi` passes with Toffee functional coverage: 18 groups, 91 points, 98 bins, all 100% covered.
+- RTL coverage: **Line 1359/1359 (100.0%) | Branch 471/471 (100.0%) | Toggle 24947/28227 (88.4%) | Expr 137/137 (100.0%)**.
+- 48 lines/expressions waived across Categories A-O (see `docs/coverage_waiver_rationale.md`).
+- Toggle waiver: 3,280 misses waived Categories T-A~T-F (see `docs/toggle_coverage_waiver.md`).
+- `make reproduce` is the one-command reproducibility entry and passes from a cleaned generated-artifact state.
+- Bug-injection evidence recorded in `docs/bug_tracking.md`; kept out of normal regression suite.
 
 ## UCAgent Integration Status
 
-Current verification progress is real and reproducible. The project now has ten Cache-specific UCAgent stage artifacts covering audit, backpressure, CRV/coverage, dirty-writeback closure, bug-injection evidence, final report packaging, flush behavior, coherence probe, write-miss eviction replay, GenSpec, and line coverage closure (DIR-014/015/016).
-
-- Existing work: Codex implemented and ran the Cache verification files in this workspace.
-- Verified outside this workspace: `instruction.md` proves the local UCAgent -> Codex -> MCP `Complete` path can run.
-- Verified inside this workspace: `configs/ucagent_track1_cache.yaml` ran the configured Cache stages through UCAgent/Codex or UCAgent/Claude Code, recorded stage journals, and called `Complete`.
-- Ready for submission: configured UCAgent stages through coherence are complete, post-coherence directed tests are clean, regression is clean, and the reproducibility entry is validated.
-- Config check passed: `ucagent --emulate-config --force-stage-index 1` recognized all stages and selected the backpressure stage.
-- Final report packaging completed. See `docs/ucagent_output/final_report_stage.md`.
-- Integration plan: see `docs/ucagent_operation_plan.md`.
+All 18 configured UCAgent stages (0-17) are complete with artifacts under `docs/ucagent_output/`. The competition workflow is defined in `configs/ucagent_track1_cache.yaml`. Integration plan: see `docs/ucagent_operation_plan.md`.
 
 ## Working Directories
 
 ```text
 competition/track1_nutshell_cache/
 ├── LICENSE
+├── Makefile
 ├── README.md
 ├── top.md
 ├── configs/
@@ -91,11 +102,15 @@ competition/track1_nutshell_cache/
 
 ## Verification Complete
 
-All planned verification work is complete for the current submission package:
+All planned verification work is complete:
 
-1. Line coverage closure completed: DIR-014 (probe hit full release), DIR-015 (read-burst hit), DIR-016 (needFlush de-assertion), and Category J waiver applied. RTL line coverage at 1359/1364 (99.6%).
-2. Bug-injection harness preserved outside the normal regression path so `scripts/run_regression.sh` remains clean at `30 passed in 5.43s`.
-3. Full reproducibility entry `scripts/reproduce.sh` validated and passes.
+1. Line coverage: 1359/1359 (100.0%), 21 lines waived (Categories A-K, D).
+2. Branch coverage: 471/471 (100.0%), 23 branches waived (Categories L-N).
+3. Expr coverage: 137/137 (100.0%), 6 expressions waived (Category O).
+4. Toggle coverage: 24947/28227 (88.4%), 3,280 toggles waived (Categories T-A~T-F, documentation-based).
+5. Functional coverage: 18 groups, 91 points, 98 bins, all 100% covered.
+6. Bug-injection harness preserved outside normal regression path; `make test` remains clean at `84 passed`.
+7. Full reproducibility entry `make reproduce` validated and passes.
 
 ## Template-Aligned Report Set
 
@@ -112,17 +127,17 @@ The files `unity_test/Cache_basic_info.md`, `unity_test/Cache_verification_needs
 Run the main reproducibility entry from this workspace:
 
 ```sh
-scripts/reproduce.sh
+make reproduce
 ```
 
 It runs normal regression, coverage collection with seed `7` and `18` transactions by default, the expected-failure bug injection, and the disabled-bug recovery path. Generated build, cache, Python bytecode, and wave artifacts can be removed with:
 
 ```sh
-scripts/clean_generated.sh
+make clean
 ```
 
 Latest validation:
 
 ```text
-scripts/clean_generated.sh && scripts/reproduce.sh -> PASS
+make clean && make reproduce -> PASS
 ```

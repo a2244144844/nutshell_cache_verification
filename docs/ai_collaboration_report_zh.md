@@ -32,7 +32,7 @@
 
 ## AI 缺陷与人工修正对比表
 
-本表面向提交评分中的“协同过程记录”要求，记录 agent 辅助路径中被人工审查、Prompt 调整或直接工程修改纠正的具体问题。
+本表面向提交评分中的"协同过程记录"要求，记录 agent 辅助路径中被人工审查、Prompt 调整或直接工程修改纠正的具体问题。
 
 | 问题 / 盲区 | AI 或自动化行为 | 人工修正 / 决策 | 证据 |
 | --- | --- | --- | --- |
@@ -44,6 +44,9 @@
 | Probe pipeline 时序 | 生成式 probe 驱动过早清除 valid，导致请求未进入 S1/S2/S3。 | 调整 valid/step 顺序以匹配 DUT pipeline，并记录 probe data 的微结构限制。 | Step 18；`tests/directed/test_coherence_probe.py`；`docs/ucagent_output/coherence_probe_stage.md` |
 | Flush 覆盖过度 | 朴素测试会同时 assert 两个 flush bit，但 D-cache 实例对 `io_flush[1]` 有断言约束。 | 定向测试限定使用 `io_flush[0]`，并将限制写入 stage 产物和风险项。 | Step 17；`tests/directed/test_flush_behavior.py`；`docs/ucagent_output/flush_stage.md` |
 | 报告再生成漂移 | 手工整理的 coverage report 强于 `collect_coverage.sh` 的可再生报告模板。 | 更新覆盖率脚本，使其重新生成 Toffee summary，并保留 legacy random bins 与 Toffee 闭环的区别。 | Step 23；`scripts/collect_coverage.sh`；`docs/coverage_report.md` |
+| 行覆盖率豁免粒度 | 初始方案整体豁免 `Cache_top.sv`（Picker 生成的 DPI wrapper），但用户质疑整体文件豁免是否合适。 | 分析 `Cache_top.sv` 组成（~126 个 DPI getter/setter 函数，全部由 Picker 生成）；建议整体文件豁免作为生成测试台基础设施的行业标准做法；对 `Cache.v` 做逐行分析并施加 12 行精确豁免（Categories A-G），同时保留 H/I/J 类别作为潜在测试目标。 | Step 25；`docs/coverage_waiver_rationale.md`；`tests/conftest.py` |
+| Verilator 覆盖率禁用缺口 | 不存在 Verilator `--coverage-exclude` 编译标志；只能在后处理层面进行过滤。 | 使用 `toffee_test` 的 `ignore_patterns` 机制，通过 `fnmatch` 过滤文件级模式，通过 `parse_ignore_miss_lines()` 过滤行范围模式（`file.v:line1,range1-range2`）。| Step 25；`docs/coverage_waiver_rationale.md` |
+| Toffee 分支覆盖率报告遗漏 | LCOV HTML 显示 85% 分支覆盖率（C++ 级，28,949 个分支），而 `code_coverage.json` 为 95.3%（RTL 级，494 个分支）。`convert_line_coverage()` 计算出正确的 RTL 数值，但仅对 C++ 级 `merged.info` 生成 HTML。 | 追溯 toffee-test 源码（`__init__.py` 第 34 行，`processor.py` 第 40 行）记录精确的流水线缺口；从 `code_coverage.json` 生成 `rtl_coverage.html` 作为提交用可视化；在 `docs/toffee_branch_coverage_gap.md` 中记录缺口分析及源码证据，并对 toffee-test 提供修复建议。 | Step 30；`docs/toffee_branch_coverage_gap.md`；`build/reports/rtl_coverage.html` |
 
 ## 日志
 
@@ -341,3 +344,85 @@ UCAgent Stage：`expr_coverage_closure` | 后端：Claude Code CLI | 配置：`c
   | 分支 | 471/471 (100.0%) | 471/471 (100.0%) | — |
   | 表达式 | 137/137 (100.0%) | 137/137 (100.0%) | — |
 - **结论：** 翻转覆盖率平台期确认在 88.4%。剩余 3,280 次缺失属于结构性原因（T-A~T-F）。豁免采用文档化方式，因为 `toffee_test` 的 `filter_coverage()` 不具备类型感知。
+
+## Stage 21：功能覆盖率闭环 — 71/92 (77.2%) → 91/91 (100%)（2026-06-01）
+
+UCAgent Stage: `funcov_closure` | Backend: Claude Code CLI | 通过 UCAgent MCP Server
+
+### 人工分析阶段
+
+修复 tracker 组（A1，+4 点）和添加 probe 交叉状态测试（A2，+4 点）后，功能覆盖率处于 71/92（77.2%），剩余 21 个仓缺口，分布如下：
+
+| 缺口组 | 缺失仓数 | 问题性质 |
+|--------|---------|---------|
+| `cache_write_hit_x_wmask` | 18/48 | 随机测试偏向低地址，offset 3-7 覆盖不足 |
+| `cache_miss_x_addr_type` | 1（`miss_mmio`） | 物理不可达——MMIO 永不产生 cache miss |
+| `cache_probe_x_cache_state` | 2（`probe_hit_empty`、`probe_miss_dirty`） | 一个不可达，一个模型语义错误 |
+
+人工将缺口按优先级分类：
+- **P0**：删除 2 个物理不可达仓（`probe_hit_empty`、`miss_mmio`）
+- **P1**：修复 `_eval_probe_cross` 对 probe_miss 的语义——将"被探测行状态"改为"全局 cache 状态"
+- **P2**：新增 18 个定向测试覆盖缺失的 write_hit_x_wmask 组合
+
+### AI 执行阶段（通过 UCAgent MCP Server + Claude Code）
+
+**P0 — 删除不可达仓**：
+- 从 `src/utils/toffee_coverage.py` 的 `cache_miss_x_addr_type` 移除 `miss_mmio`
+- 从 `cache_probe_x_cache_state` 移除 `probe_hit_empty`（probe 不可能命中空行，该行从未被填充）
+- 同步更新 `src/utils/cache_coverage.py` 的 EXPECTED_BINS
+
+**P1 — 修复 probe_miss 模型语义**：
+- 重写 `_eval_probe_cross` 函数：probe_miss 仓现检查全局 cache 状态（`any(self._line_dirty.values())` / `self._line_valid`），而非被探测行的状态（对 miss 而言始终为空）
+- probe_hit 仓保持检查命中行的特定状态
+- 使 `probe_miss_valid` 和 `probe_miss_dirty` 语义正确可达
+
+**P2 — 新增 write_hit_x_wmask 定向测试**：
+- 在 `tests/directed/test_write_hit_wmask.py` 中新增 18 个测试，使用 0x8000_2000+ 范围的独立 cache line 基地址
+- byte(3,4)、adjacent(0,4,5)、low_half(0,5,6)、high_half(0,6,7)、full(2,3,4,6,7)、sparse(0,1)
+- 文件总计 44 个测试，覆盖全部 48 种 wmask × offset 组合
+
+### 人工审阅阶段
+
+1. 运行 `scripts/collect_coverage.sh 7 18` → 86 passed，确认 91/91 点（100%）、98/98 仓（100%）
+2. 指示 AI 更新 6 个 markdown 文档（英文原版 + 中文镜像），添加完成状态及逐组分解
+3. 创建 `manual_finding_funcov_gap_zh.md` 和 `funcov_closure_action_plan_zh.md`
+4. 同步 `top.md` / `top_zh.md` 索引中的全部新增条目
+
+### 涉及命令
+
+```bash
+.venv/bin/python -m pytest competition/tests/directed/test_write_hit_wmask.py -v → 44 passed in 11.85s
+.venv/bin/python -m pytest competition/tests/directed/test_coherence_probe.py -v → 10 passed in 2.48s
+.venv/bin/python -m pytest competition/tests/directed/ -v → 81 passed in 19.93s
+bash scripts/collect_coverage.sh 7 18 → 86 passed, 91/91 points (100%), 98/98 bins (100%)
+```
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `src/utils/toffee_coverage.py` | 修复 tracker 返回值, 移除 2 个不可达仓, 修复 probe_miss 的 `_eval_probe_cross` |
+| `src/utils/cache_coverage.py` | 同步 `EXPECTED_BINS` 与模型变更 |
+| `tests/directed/test_write_hit_wmask.py` | 新增 18 个缺失的 wmask × offset 组合（共 44 个测试，覆盖 48/48 仓） |
+| `docs/manual_finding_funcov_gap.md` | 重写——添加解决状态及最终覆盖率数据 |
+| `docs/manual_finding_funcov_gap_zh.md` | 新建——中文镜像 |
+| `docs/funcov_closure_action_plan.md` | 重写——添加已完成状态及逐组分解 |
+| `docs/funcov_closure_action_plan_zh.md` | 新建——中文镜像 |
+| `docs/ai_collaboration_report.md` | 新增 Step 31 日志条目 |
+| `top.md` | 更新日期，更新两条文档描述 |
+| `top_zh.md` | 更新日期，新增英文条目 + 中文镜像条目 |
+
+### 覆盖率增量
+
+| 指标 | 之前 | 之后 | 增量 |
+|---|---|---|---|
+| Toffee 点数 | 71/92 (77.2%) | **91/91 (100%)** | +20 |
+| Toffee 仓数 | 79/100 (79.0%) | **98/98 (100%)** | +19 |
+| 行覆盖率 | 1359/1359 (100.0%) | 1359/1359 (100.0%) | — |
+| 分支覆盖率 | 471/471 (100.0%) | 471/471 (100.0%) | — |
+
+### 人机协同模式
+
+- **人工主导**：覆盖率缺口分类（P0/P1/P2）、优先级排序、RTL 可达性分析
+- **AI 执行**：代码修改（模型修复 + 测试编写）、一轮覆盖率验证、文档撰写
+- **人工审阅**：覆盖率结果验证、文档完整性检查、中英文配套要求

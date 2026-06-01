@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-REPO_ROOT="$(cd "$ROOT_DIR/../.." && pwd)"
+WORKSPACE_ROOT="$(cd "$ROOT_DIR/.." && pwd)"
 
 "$SCRIPT_DIR/export_cache_dut.sh"
 
@@ -28,7 +28,7 @@ echo "Steps per seed: $CACHE_RANDOM_STEPS"
 echo ""
 
 # Run full test suite (smoke + directed + multi-seed random) in single pytest process
-"$REPO_ROOT/.venv/bin/python" -m pytest \
+"$WORKSPACE_ROOT/.venv/bin/python" -m pytest \
   "$ROOT_DIR/tests/smoke/" \
   "$ROOT_DIR/tests/directed/" \
   "$ROOT_DIR/tests/corner/" \
@@ -43,7 +43,7 @@ echo ""
 
 # Generate RTL coverage HTML
 if [ -f "$REPORT_DIR/line_dat/code_coverage.json" ]; then
-    "$REPO_ROOT/.venv/bin/python" "$SCRIPT_DIR/generate_rtl_coverage_html.py" \
+    "$WORKSPACE_ROOT/.venv/bin/python" "$SCRIPT_DIR/generate_rtl_coverage_html.py" \
       -i "$REPORT_DIR/line_dat/code_coverage.json" \
       -o "$REPORT_DIR/rtl_coverage.html"
     echo "RTL coverage HTML: $REPORT_DIR/rtl_coverage.html"
@@ -60,7 +60,7 @@ echo "  RTL coverage:          $REPORT_DIR/rtl_coverage.html"
 if [ -f "$REPORT_DIR/line_dat/code_coverage.json" ]; then
     echo ""
     echo "=== Coverage Summary ==="
-    "$REPO_ROOT/.venv/bin/python" - <<'PY'
+    "$WORKSPACE_ROOT/.venv/bin/python" - <<'PY'
 import json
 from pathlib import Path
 

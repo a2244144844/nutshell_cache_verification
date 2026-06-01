@@ -3,15 +3,15 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-REPO_ROOT="$(cd "$ROOT_DIR/../.." && pwd)"
+WORKSPACE_ROOT="$(cd "$ROOT_DIR/.." && pwd)"
 STAGE_INDEX="${1:-1}"
 MCP_PORT="${UCAGENT_MCP_PORT:-5002}"
 BACKEND_ARGS="${UC_ENV_CMD_BACKEND_EX_ARGS:--m gpt-5.4-mini --ephemeral}"
 
 cd "$REPO_ROOT"
 
-if [ -f "$REPO_ROOT/.venv/bin/activate" ]; then
-  source "$REPO_ROOT/.venv/bin/activate"
+if [ -f "$WORKSPACE_ROOT/.venv/bin/activate" ]; then
+  source "$WORKSPACE_ROOT/.venv/bin/activate"
 fi
 
 UCAGENT_CMDLINE_START_MCP=1 \
