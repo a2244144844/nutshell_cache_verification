@@ -1,0 +1,115 @@
+<svg viewBox="0 0 680 700" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <title>Cache 三阶段流水线数据流图</title>
+  <desc>CPU/Probe请求到最终响应的完整数据流路径</desc>
+
+  <style>
+    .th { font-family: -apple-system, sans-serif; font-size: 14px; font-weight: 500; }
+    .ts { font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 400; }
+  </style>
+
+  <!-- Input Sources -->
+  <rect x="40" y="20" width="260" height="44" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1"/>
+  <text class="th" x="170" y="36" text-anchor="middle" dominant-baseline="central" fill="#26215C">CPU 请求 (io_in_req)</text>
+  <text class="ts" x="170" y="54" text-anchor="middle" dominant-baseline="central" fill="#3C3489">cmd / addr / size / wmask / wdata</text>
+
+  <rect x="380" y="20" width="260" height="44" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="1"/>
+  <text class="th" x="510" y="36" text-anchor="middle" dominant-baseline="central" fill="#0C447C">Coherence Probe (io_out_coh_req)</text>
+  <text class="ts" x="510" y="54" text-anchor="middle" dominant-baseline="central" fill="#0C447C">外部一致性探测</text>
+
+  <line x1="510" y1="64" x2="510" y2="90" stroke="#888780" stroke-width="1" marker-end="url(#arrow3)"/>
+  <line x1="170" y1="64" x2="170" y2="90" stroke="#888780" stroke-width="1" marker-end="url(#arrow3)"/>
+
+  <!-- Arbiter -->
+  <rect x="40" y="91" width="600" height="36" rx="8" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="1"/>
+  <text class="th" x="340" y="109" text-anchor="middle" dominant-baseline="central" fill="#444441">Arbiter (2输入仲裁, CPU优先)</text>
+
+  <line x1="340" y1="127" x2="340" y2="150" stroke="#888780" stroke-width="1" marker-end="url(#arrow3)"/>
+
+  <!-- Stage1 -->
+  <rect x="40" y="151" width="600" height="56" rx="12" fill="#E1F5EE" stroke="#1D9E75" stroke-width="1"/>
+  <text class="th" x="340" y="171" text-anchor="middle" dominant-baseline="central" fill="#085041">Stage1 — 地址译码 (组合逻辑, L1-L54)</text>
+  <text class="ts" x="340" y="191" text-anchor="middle" dominant-baseline="central" fill="#085041">addr[12:6]=set_idx | addr[5:3]=word_idx | addr[31:13]=tag → 并行发起 Meta/Data SRAM 读</text>
+
+  <line x1="340" y1="207" x2="340" y2="230" stroke="#888780" stroke-width="1" marker-end="url(#arrow3)"/>
+
+  <!-- Stage2 -->
+  <rect x="40" y="231" width="600" height="80" rx="12" fill="#E6F1FB" stroke="#185FA5" stroke-width="1"/>
+  <text class="th" x="340" y="251" text-anchor="middle" dominant-baseline="central" fill="#0C447C">Stage2 — 命中判定 (时序逻辑, L55-L384)</text>
+  <text class="ts" x="340" y="271" text-anchor="middle" dominant-baseline="central" fill="#0C447C">4-Way Tag比较 ｜ MMIO判定 (0x30/0x40区间) ｜ Forward数据覆盖</text>
+  <text class="ts" x="340" y="291" text-anchor="middle" dominant-baseline="central" fill="#0C447C">LFSR64 VictimWay选择 (Invalid优先) ｜ Wmask/Word Offset计算</text>
+
+  <line x1="340" y1="311" x2="340" y2="334" stroke="#888780" stroke-width="1" marker-end="url(#arrow3)"/>
+
+  <!-- Stage3 -->
+  <rect x="40" y="335" width="600" height="335" rx="16" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+  <text class="th" x="340" y="358" text-anchor="middle" dominant-baseline="central" fill="#633806">Stage3 — FSM 状态机 (核心控制器, L385-L1042)</text>
+
+  <!-- Idle state -->
+  <rect x="270" y="372" width="140" height="40" rx="8" fill="#FFFFFF" stroke="#BA7517" stroke-width="1"/>
+  <text class="th" x="340" y="392" text-anchor="middle" dominant-baseline="central" fill="#633806">状态0: Idle</text>
+
+  <text class="ts" x="340" y="425" text-anchor="middle" dominant-baseline="central" fill="#4A1B0C">根据操作类型分支</text>
+
+  <line x1="340" y1="435" x2="340" y2="455" stroke="#888780" stroke-width="1"/>
+  <line x1="60" y1="455" x2="620" y2="455" stroke="#888780" stroke-width="1"/>
+  <line x1="60" y1="455" x2="60" y2="472" stroke="#888780" stroke-width="1" marker-end="url(#arrow3)"/>
+  <line x1="206" y1="455" x2="206" y2="472" stroke="#888780" stroke-width="1" marker-end="url(#arrow3)"/>
+  <line x1="340" y1="455" x2="340" y2="472" stroke="#888780" stroke-width="1" marker-end="url(#arrow3)"/>
+  <line x1="473" y1="455" x2="473" y2="472" stroke="#888780" stroke-width="1" marker-end="url(#arrow3)"/>
+  <line x1="620" y1="455" x2="620" y2="472" stroke="#888780" stroke-width="1" marker-end="url(#arrow3)"/>
+
+  <!-- Branches -->
+  <rect x="55" y="473" width="135" height="52" rx="8" fill="#EAF3DE" stroke="#639922" stroke-width="1"/>
+  <text class="th" x="122" y="490" text-anchor="middle" dominant-baseline="central" fill="#27500A">命中 (Hit)</text>
+  <text class="ts" x="122" y="510" text-anchor="middle" dominant-baseline="central" fill="#3B6D11">状态7: Output Fire</text>
+
+  <rect x="195" y="473" width="135" height="52" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="1"/>
+  <text class="th" x="262" y="490" text-anchor="middle" dominant-baseline="central" fill="#0C447C">缺失 (Miss)</text>
+  <text class="ts" x="262" y="510" text-anchor="middle" dominant-baseline="central" fill="#185FA5">状态1: Refill 8-beat</text>
+
+  <rect x="335" y="473" width="135" height="52" rx="8" fill="#FAECE7" stroke="#D85A30" stroke-width="1"/>
+  <text class="th" x="402" y="490" text-anchor="middle" dominant-baseline="central" fill="#712B13">脏缺失 (Dirty)</text>
+  <text class="ts" x="402" y="510" text-anchor="middle" dominant-baseline="central" fill="#993C1D">状态3: Writeback → Refill</text>
+
+  <rect x="475" y="473" width="135" height="52" rx="8" fill="#FBEAF0" stroke="#D4537E" stroke-width="1"/>
+  <text class="th" x="542" y="490" text-anchor="middle" dominant-baseline="central" fill="#72243E">MMIO 旁路</text>
+  <text class="ts" x="542" y="510" text-anchor="middle" dominant-baseline="central" fill="#993556">状态5/6: 不污染Cache</text>
+
+  <!-- Merge branches -->
+  <line x1="122" y1="525" x2="122" y2="555" stroke="#888780" stroke-width="1"/>
+  <line x1="262" y1="525" x2="262" y2="555" stroke="#888780" stroke-width="1"/>
+  <line x1="402" y1="525" x2="402" y2="555" stroke="#888780" stroke-width="1"/>
+  <line x1="542" y1="525" x2="542" y2="555" stroke="#888780" stroke-width="1"/>
+  <line x1="122" y1="555" x2="542" y2="555" stroke="#888780" stroke-width="1"/>
+  <line x1="340" y1="555" x2="340" y2="580" stroke="#888780" stroke-width="1" marker-end="url(#arrow3)"/>
+
+  <!-- Response routing -->
+  <rect x="240" y="581" width="200" height="36" rx="8" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="1"/>
+  <text class="th" x="340" y="599" text-anchor="middle" dominant-baseline="central" fill="#444441">响应路由 (根据来源分发)</text>
+
+  <line x1="255" y1="617" x2="255" y2="642" stroke="#888780" stroke-width="1" marker-end="url(#arrow3)"/>
+  <line x1="425" y1="617" x2="425" y2="642" stroke="#888780" stroke-width="1" marker-end="url(#arrow3)"/>
+
+  <!-- Outputs -->
+  <rect x="80" y="643" width="250" height="44" rx="8" fill="#FFFFFF" stroke="#1D9E75" stroke-width="1"/>
+  <text class="th" x="205" y="660" text-anchor="middle" dominant-baseline="central" fill="#085041">CPU 响应 (io_in_resp)</text>
+  <text class="ts" x="205" y="678" text-anchor="middle" dominant-baseline="central" fill="#085041">rdata / cmd / user</text>
+
+  <rect x="350" y="643" width="250" height="44" rx="8" fill="#FFFFFF" stroke="#BA7517" stroke-width="1"/>
+  <text class="th" x="475" y="660" text-anchor="middle" dominant-baseline="central" fill="#633806">内存 / MMIO / Coherence 响应</text>
+  <text class="ts" x="475" y="678" text-anchor="middle" dominant-baseline="central" fill="#633806">out_mem / out_mmio / out_coh</text>
+
+  <!-- SRAM annotations -->
+  <rect x="615" y="155" width="50" height="20" rx="4" fill="#EAF3DE" stroke="#639922" stroke-width="1"/>
+  <text class="ts" x="640" y="165" text-anchor="middle" dominant-baseline="central" fill="#27500A">Meta rd</text>
+  <rect x="615" y="240" width="50" height="20" rx="4" fill="#EAF3DE" stroke="#639922" stroke-width="1"/>
+  <text class="ts" x="640" y="250" text-anchor="middle" dominant-baseline="central" fill="#27500A">Data rd1</text>
+  <rect x="615" y="340" width="50" height="20" rx="4" fill="#EAF3DE" stroke="#639922" stroke-width="1"/>
+  <text class="ts" x="640" y="350" text-anchor="middle" dominant-baseline="central" fill="#27500A">Data rd2</text>
+</svg>

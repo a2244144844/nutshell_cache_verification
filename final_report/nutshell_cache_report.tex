@@ -20,6 +20,9 @@
 \usepackage{listings}
 \usepackage{titlesec}
 
+% ─── Graphics path ───
+\graphicspath{{../docs/diagrams/}}
+
 % ─── Chinese-friendly settings ───
 \ctexset{
   section = {
@@ -197,13 +200,41 @@ Mill & 0.11.7 & Chisel 构建工具 \\
   \item 使用 UCAgent 编排验证阶段，记录 Stage Journal 证据。
 \end{enumerate}
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{01_verification_flow.pdf}
+  \caption{验证流程图 —— 从环境搭建到覆盖率闭环的五阶段工作流}
+  \label{fig:flow}
+\end{figure}
+
 \subsection{平台组件}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{02_verification_arch.pdf}
+  \caption{验证平台架构 —— Toffee 风格四层组件与数据通路}
+  \label{fig:arch}
+\end{figure}
 
 \subsubsection{DUT（Design Under Test）}
 
 DUT 选定为 Picker example/Cache 目录下的 Cache.v（而非完整 NutShell Chisel 生成的 RTL）。该模块是一个 4 路组相联 Cache，包含以下子模块：CacheStage1（请求解析）、CacheStage2（SRAM 访问与 Tag 比较）、CacheStage3（响应收集与替换控制）、Arbiter（多路仲裁）、SRAMTemplate（SRAM 行为模型）。
 
 Cache 配置参数：L1 Cache 大小 32KB，Cache Line 大小 64B，采用 4 路组相联映射，替换策略为随机替换（LFSR 伪随机）。支持 SimpleBus 协议（Read/Write/ReadBurst/WriteBurst/WriteLast），通过 MMIO 接口（地址空间 0x30000000$\sim$0x7fffffff）访问外设。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{03_dut_dataflow.pdf}
+  \caption{DUT 数据流图 —— Cache 模块的 CPU 侧、内存侧与 MMIO 信号通路}
+  \label{fig:dataflow}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{04_dut_structure.pdf}
+  \caption{DUT 层次结构 —— CacheStage1/2/3 三级流水线及子模块关系}
+  \label{fig:structure}
+\end{figure}
 
 \subsubsection{CacheWrapper（缓存封装器）}
 
