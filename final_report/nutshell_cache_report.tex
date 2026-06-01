@@ -100,11 +100,11 @@
 
   \vspace{0.8cm}
 
-  {\kaishu\zihao{3}——基于 UCAgent + Picker + Toffee 框架的功能验证与覆盖率闭环}
+  {\kaishu\zihao{3}——基于 UCAgent + Claude Code + WorkBuddy 框架的功能验证与覆盖率闭环}
 
   \vspace{3cm}
 
-  {\songti\zihao{4} UCAgent 验证团队}
+  {\songti\zihao{4} Zhaoyue Zhang}
 
   \vspace{1cm}
 
@@ -131,7 +131,7 @@
 
 \subsection{项目背景}
 
-本报告记录了 NutShell RISC-V 处理器 Cache 模块的完整功能验证过程。验证工作采用 UCAgent 框架辅助，结合 Picker（RTL$\rightarrow$Python 导出）、Verilator 仿真器、pytest 测试框架及 Toffee 验证方法学，完成了从环境搭建到覆盖率闭环的全流程验证。
+本报告记录了 NutShell RISC-V 处理器 Cache 模块的完整功能验证过程。验证工作采用 UCAgent 框架辅助——通过 Claude Code 连接 UCAgent MCP Server 执行 AI 辅助验证，WorkBuddy 负责文档整理与报告生成，Makefile 统一管理工作流启动——结合 Picker（RTL$\rightarrow$Python 导出）、Verilator 仿真器、pytest 测试框架及 Toffee 验证方法学，完成了从环境搭建到覆盖率闭环的全流程验证。
 
 NutShell 是由中国科学院计算技术研究所开发的一款基于 RISC-V RV64 指令集的开源顺序处理器。其 Cache 子系统包括 L1 指令 Cache（I-Cache）、L1 数据 Cache（D-Cache）和统一的 L2 Cache。本次验证聚焦于 L1 Cache 模块，具体实现为 Picker example/Cache 中的 4 路组相联 Cache 设计。
 
@@ -160,7 +160,9 @@ NutShell 是由中国科学院计算技术研究所开发的一款基于 RISC-V 
 \thcell{工具/组件} & \thcell{版本} & \thcell{用途} \\
 \midrule
 \rowcolor{rowgray} UCAgent & 0.9.2+ & AI 辅助验证编排框架 \\
-Codex CLI & 0.131.0+ & AI 后端执行引擎 \\
+Claude Code & 0.131.0+ & 连接 UCAgent MCP Server，AI 辅助验证执行 \\
+\rowcolor{rowgray} WorkBuddy & latest & 文档整理与报告生成 \\
+Makefile & --- & 工作流启动管理（回归/覆盖率/Bug 注入） \\
 \rowcolor{rowgray} Picker & 0.1.0-master & RTL$\rightarrow$Python DUT 导出 \\
 Verilator & 5.046 & RTL 仿真引擎 \\
 \rowcolor{rowgray} pytest & 8.1.1 & Python 测试框架 \\
@@ -359,7 +361,9 @@ Verilator & 5.046 & RTL 仿真引擎 \\
 \rowcolor{rowgray} Java JRE & 17.0.19 & Chisel/NutShell 构建 \\
 Mill & 0.11.7 & Scala 构建工具 \\
 \rowcolor{rowgray} UCAgent & 0.9.2+ & AI 验证编排 \\
-Codex CLI & 0.131.0+ & AI 后端 \\
+Claude Code & 0.131.0+ & 连接 UCAgent MCP Server，AI 辅助验证 \\
+\rowcolor{rowgray} WorkBuddy & latest & 文档整理与报告生成 \\
+Makefile & --- & 工作流启动管理（回归/覆盖率/Bug 注入） \\
 \rowcolor{rowgray} pytoffee / toffee-test & latest & Toffee 方法学与测试工具 \\
 \bottomrule
 \end{tabular}
@@ -606,7 +610,7 @@ T-F & 未使用/NC 端口位 & IC 端口未连接位 \\
 % ═══════════════════════════════════════════════════════════
 \section{结论}
 
-本报告完整记录了 NutShell Cache 模块的功能验证过程与成果。通过 UCAgent + Picker + Verilator + Toffee 技术栈，成功完成了从环境搭建到覆盖率闭环的全流程验证。
+本报告完整记录了 NutShell Cache 模块的功能验证过程与成果。通过 UCAgent + Claude Code + WorkBuddy + Picker + Verilator + Toffee 技术栈，成功完成了从环境搭建到覆盖率闭环的全流程验证。
 
 验证结果表明，NutShell L1 Cache 的 I-Cache 配置在功能层面表现正确：行覆盖、分支覆盖、表达式覆盖均达到 100\%，翻转覆盖在豁免后可接受（88.4\%），Toffee 功能覆盖全部 12 组 37 仓达到 100\%。通过 6 个注入 Bug 的成功检出，验证了验证环境的缺陷检出能力。
 
