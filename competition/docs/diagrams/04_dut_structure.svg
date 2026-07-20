@@ -1,0 +1,123 @@
+<svg viewBox="0 0 680 680" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <title>Cache DUT 模块层次结构框图</title>
+  <desc>Cache.v 顶层模块与5个子模块的层次关系与信号连接</desc>
+
+  <style>
+    .th { font-family: -apple-system, sans-serif; font-size: 14px; font-weight: 500; }
+    .ts { font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 400; }
+  </style>
+
+  <!-- Top boundary -->
+  <rect x="40" y="15" width="600" height="650" rx="20" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
+  <text class="th" x="340" y="42" text-anchor="middle" fill="#26215C">Cache (顶层模块 — Cache.v L1-L3046)</text>
+  <text class="ts" x="340" y="60" text-anchor="middle" fill="#3C3489">32KB · 4-Way Set-Associative · 128 Set · 64B/Line</text>
+
+  <!-- External Interface boxes -->
+  <rect x="55" y="75" width="130" height="72" rx="8" fill="#FFFFFF" stroke="#534AB7" stroke-width="1"/>
+  <text class="th" x="120" y="93" text-anchor="middle" dominant-baseline="central" fill="#26215C">CPU 接口</text>
+  <text class="ts" x="120" y="113" text-anchor="middle" dominant-baseline="central" fill="#3C3489">in_req (valid/ready)</text>
+  <text class="ts" x="120" y="131" text-anchor="middle" dominant-baseline="central" fill="#3C3489">in_resp → rdata[63:0]</text>
+
+  <rect x="495" y="75" width="130" height="72" rx="8" fill="#FFFFFF" stroke="#BA7517" stroke-width="1"/>
+  <text class="th" x="560" y="93" text-anchor="middle" dominant-baseline="central" fill="#633806">外部接口</text>
+  <text class="ts" x="560" y="113" text-anchor="middle" dominant-baseline="central" fill="#633806">out_mem (req/resp)</text>
+  <text class="ts" x="560" y="131" text-anchor="middle" dominant-baseline="central" fill="#633806">out_mmio / out_coh</text>
+
+  <!-- Stage1 -->
+  <rect x="160" y="155" width="360" height="52" rx="10" fill="#E1F5EE" stroke="#1D9E75" stroke-width="1"/>
+  <text class="th" x="340" y="174" text-anchor="middle" dominant-baseline="central" fill="#085041">Stage1 — 地址译码器 (组合逻辑, L1-L54)</text>
+  <text class="ts" x="340" y="195" text-anchor="middle" dominant-baseline="central" fill="#085041">Set Index[12:6] | Word Offset[5:3] | Tag[31:13]</text>
+
+  <line x1="185" y1="105" x2="210" y2="180" stroke="#888780" stroke-width="1" marker-end="url(#arrow4)"/>
+
+  <!-- Stage1 → Stage2 -->
+  <line x1="340" y1="207" x2="340" y2="240" stroke="#888780" stroke-width="1" marker-end="url(#arrow4)"/>
+
+  <!-- Stage2 -->
+  <rect x="160" y="241" width="360" height="70" rx="10" fill="#E6F1FB" stroke="#185FA5" stroke-width="1"/>
+  <text class="th" x="340" y="260" text-anchor="middle" dominant-baseline="central" fill="#0C447C">Stage2 — 命中判定 (时序逻辑, L55-L384)</text>
+  <text class="ts" x="340" y="280" text-anchor="middle" dominant-baseline="central" fill="#0C447C">4-Way Tag比较 ｜ MMIO判定 (0x30/0x40区间) ｜ Forward数据覆盖</text>
+  <text class="ts" x="340" y="298" text-anchor="middle" dominant-baseline="central" fill="#0C447C">LFSR64 VictimWay选择 (Invalid优先) ｜ Wmask计算</text>
+
+  <!-- Stage2 → Stage3 -->
+  <line x1="340" y1="311" x2="340" y2="344" stroke="#888780" stroke-width="1" marker-end="url(#arrow4)"/>
+
+  <!-- Stage3 -->
+  <rect x="160" y="345" width="360" height="90" rx="10" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+  <text class="th" x="340" y="364" text-anchor="middle" dominant-baseline="central" fill="#633806">Stage3 — FSM 控制器 (状态机, L385-L1042)</text>
+
+  <!-- FSM state chips -->
+  <rect x="178" y="378" width="78" height="22" rx="6" fill="#FFFFFF" stroke="#BA7517" stroke-width="1"/>
+  <text class="ts" x="217" y="389" text-anchor="middle" dominant-baseline="central" fill="#633806">idle(0)</text>
+  <rect x="264" y="378" width="78" height="22" rx="6" fill="#FFFFFF" stroke="#BA7517" stroke-width="1"/>
+  <text class="ts" x="303" y="389" text-anchor="middle" dominant-baseline="central" fill="#633806">refill(1)</text>
+  <rect x="350" y="378" width="78" height="22" rx="6" fill="#FFFFFF" stroke="#BA7517" stroke-width="1"/>
+  <text class="ts" x="389" y="389" text-anchor="middle" dominant-baseline="central" fill="#633806">writeback(3)</text>
+  <rect x="436" y="378" width="66" height="22" rx="6" fill="#FFFFFF" stroke="#BA7517" stroke-width="1"/>
+  <text class="ts" x="469" y="389" text-anchor="middle" dominant-baseline="central" fill="#633806">output(7)</text>
+
+  <rect x="178" y="406" width="78" height="22" rx="6" fill="#FFFFFF" stroke="#BA7517" stroke-width="1"/>
+  <text class="ts" x="217" y="417" text-anchor="middle" dominant-baseline="central" fill="#633806">MMIO(5/6)</text>
+  <rect x="264" y="406" width="78" height="22" rx="6" fill="#FFFFFF" stroke="#BA7517" stroke-width="1"/>
+  <text class="ts" x="303" y="417" text-anchor="middle" dominant-baseline="central" fill="#633806">probe(8)</text>
+  <rect x="350" y="406" width="78" height="22" rx="6" fill="#FFFFFF" stroke="#BA7517" stroke-width="1"/>
+  <text class="ts" x="389" y="417" text-anchor="middle" dominant-baseline="central" fill="#633806">flush recovery</text>
+
+  <!-- SRAM Data Path -->
+  <rect x="55" y="260" width="95" height="60" rx="10" fill="#FFFFFF" stroke="#534AB7" stroke-width="1"/>
+  <text class="th" x="102" y="280" text-anchor="middle" dominant-baseline="central" fill="#26215C">MetaDataArray</text>
+  <text class="ts" x="102" y="299" text-anchor="middle" dominant-baseline="central" fill="#3C3489">4-way × 128-set</text>
+  <text class="ts" x="102" y="314" text-anchor="middle" dominant-baseline="central" fill="#3C3489">21b/entry</text>
+
+  <rect x="55" y="345" width="95" height="60" rx="10" fill="#FFFFFF" stroke="#534AB7" stroke-width="1"/>
+  <text class="th" x="102" y="365" text-anchor="middle" dominant-baseline="central" fill="#26215C">DataArray</text>
+  <text class="ts" x="102" y="384" text-anchor="middle" dominant-baseline="central" fill="#3C3489">4-way × 128-set</text>
+  <text class="ts" x="102" y="399" text-anchor="middle" dominant-baseline="central" fill="#3C3489">8×64b / line</text>
+
+  <!-- SRAM connections -->
+  <line x1="160" y1="180" x2="152" y2="290" stroke="#888780" stroke-width="1" marker-end="url(#arrow4)"/>
+  <line x1="160" y1="185" x2="152" y2="375" stroke="#888780" stroke-width="1" marker-end="url(#arrow4)"/>
+  <line x1="152" y1="290" x2="160" y2="270" stroke="#1D9E75" stroke-width="1" marker-end="url(#arrow4)"/>
+  <line x1="152" y1="375" x2="160" y2="275" stroke="#1D9E75" stroke-width="1" marker-end="url(#arrow4)"/>
+  <line x1="160" y1="390" x2="152" y2="300" stroke="#BA7517" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow4)"/>
+  <line x1="160" y1="400" x2="152" y2="385" stroke="#BA7517" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow4)"/>
+
+  <text class="ts" x="125" y="440" fill="#1D9E75">Meta rd/wr</text>
+  <text class="ts" x="125" y="456" fill="#1D9E75">Data rd1/rd2/wr</text>
+
+  <!-- Coherence probe connection -->
+  <line x1="495" y1="105" x2="470" y2="430" stroke="#888780" stroke-width="1" marker-end="url(#arrow4)"/>
+
+  <!-- Control signals -->
+  <rect x="380" y="480" width="240" height="50" rx="8" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="1"/>
+  <text class="th" x="500" y="498" text-anchor="middle" dominant-baseline="central" fill="#444441">全局控制信号</text>
+  <text class="ts" x="500" y="518" text-anchor="middle" dominant-baseline="central" fill="#444441">clock | reset | io_flush[1:0] | io_empty</text>
+
+  <rect x="230" y="480" width="135" height="50" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="1"/>
+  <text class="th" x="297" y="498" text-anchor="middle" dominant-baseline="central" fill="#0C447C">流水线流向</text>
+  <text class="ts" x="297" y="518" text-anchor="middle" dominant-baseline="central" fill="#0C447C">Stage1 → Stage2 → Stage3</text>
+
+  <!-- Config summary -->
+  <rect x="55" y="550" width="570" height="100" rx="12" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="1"/>
+  <text class="th" x="340" y="573" text-anchor="middle" fill="#444441">Cache 硬编码配置参数</text>
+
+  <rect x="75" y="585" width="120" height="28" rx="6" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="1"/>
+  <text class="ts" x="135" y="599" text-anchor="middle" dominant-baseline="central" fill="#2C2C2A">Way: 4</text>
+  <rect x="205" y="585" width="120" height="28" rx="6" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="1"/>
+  <text class="ts" x="265" y="599" text-anchor="middle" dominant-baseline="central" fill="#2C2C2A">Set: 128 (2⁷)</text>
+  <rect x="335" y="585" width="120" height="28" rx="6" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="1"/>
+  <text class="ts" x="395" y="599" text-anchor="middle" dominant-baseline="central" fill="#2C2C2A">Line: 64B</text>
+  <rect x="465" y="585" width="140" height="28" rx="6" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="1"/>
+  <text class="ts" x="535" y="599" text-anchor="middle" dominant-baseline="central" fill="#2C2C2A">Total: 32KB</text>
+
+  <rect x="75" y="618" width="250" height="26" rx="6" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="1"/>
+  <text class="ts" x="200" y="631" text-anchor="middle" dominant-baseline="central" fill="#2C2C2A">替换: Invalid-Way优先 + LFSR随机</text>
+  <rect x="335" y="618" width="270" height="26" rx="6" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="1"/>
+  <text class="ts" x="470" y="631" text-anchor="middle" dominant-baseline="central" fill="#2C2C2A">MMIO区间: 0x30000000 / 0x40000000</text>
+</svg>
