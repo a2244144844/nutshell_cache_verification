@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-WORKSPACE_ROOT="$(cd "$ROOT_DIR/.." && pwd)"
+WORKSPACE_ROOT="$ROOT_DIR"
 STAGE_INDEX="${1:-1}"
 MCP_PORT="${UCAGENT_MCP_PORT:-5002}"
 BACKEND_ARGS="${UC_ENV_CMD_BACKEND_EX_ARGS:--m gpt-5.4-mini --ephemeral}"

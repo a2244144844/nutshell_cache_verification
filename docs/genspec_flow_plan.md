@@ -71,7 +71,7 @@ genspec_workspace/
 Then run UCAgent with the official GenSpec-style config, for example:
 
 ```sh
-cd /Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache
+cd /Users/zzy/Workspace/ucagent
 ucagent genspec_workspace Cache \
   --config genspec_workspace/genspec_cache.yaml \
   -hm --tui \

@@ -4,7 +4,7 @@ This document is the short evaluation route for the Track1 NutShell Cache verifi
 
 ## 1. Reproduce
 
-Run from the `competition/` directory:
+Run from the workspace root:
 
 ```sh
 make reproduce
@@ -92,7 +92,7 @@ Note: `86 passed` is the pytest test-case count; `91/91 points` is the Toffee fu
 
 ## 5. Submission Boundary
 
-The intended submission root is `competition/`.
+The intended submission root is the workspace root.
 
 Source-controlled deliverables:
 

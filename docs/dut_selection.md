@@ -51,7 +51,7 @@ The top module is `Cache`.
 Repeatable command:
 
 ```sh
-competition/track1_nutshell_cache/scripts/export_cache_dut.sh
+scripts/export_cache_dut.sh
 ```
 
 The script:

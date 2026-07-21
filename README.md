@@ -46,7 +46,7 @@ All 18 configured UCAgent stages (0-17) are complete with artifacts under `docs/
 ## Working Directories
 
 ```text
-competition/track1_nutshell_cache/
+./
 ├── LICENSE
 ├── Makefile
 ├── README.md

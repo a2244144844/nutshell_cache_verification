@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-WORKSPACE_ROOT="$(cd "$ROOT_DIR/.." && pwd)"
+WORKSPACE_ROOT="$ROOT_DIR"
 
 if [ -f "$WORKSPACE_ROOT/.venv/bin/activate" ]; then
   source "$WORKSPACE_ROOT/.venv/bin/activate"

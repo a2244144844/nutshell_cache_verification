@@ -138,7 +138,7 @@ If Categories H1+H2+I are fully covered (18 lines) and Category J is waived (4 l
 # Add the line_coverage_closure stage to configs/ucagent_track1_cache.yaml (stage index 9)
 # Then run:
 cd /Users/zzy/Workspace/ucagent
-bash competition/track1_nutshell_cache/scripts/run_ucagent_stage.sh 9
+bash scripts/run_ucagent_stage.sh 9
 ```
 
 ## Reference Files

@@ -1,7 +1,7 @@
 # ============================================================================
 # UCAgent Track1 Cache Verification — Makefile
 # ============================================================================
-# Wraps competition/scripts/*.sh with a standardised make interface.
+# Wraps scripts/*.sh with a standardised make interface.
 # All heavy lifting is delegated to bash scripts; this file only provides
 # discoverability, parameterisation, and shortcut targets.
 #
@@ -18,7 +18,7 @@ MAKEFLAGS += --no-print-directory
 # — Paths ————————————————————————————————————————————————————————————————
 ROOT_DIR    := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 SCRIPT_DIR  := $(ROOT_DIR)/scripts
-VENV_PYTHON := $(ROOT_DIR)/../.venv/bin/python
+VENV_PYTHON := $(ROOT_DIR)/.venv/bin/python
 
 # — User-overridable parameters ——————————————————————————————————————————
 SEED  ?= 7

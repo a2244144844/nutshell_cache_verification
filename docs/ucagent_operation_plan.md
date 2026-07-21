@@ -85,8 +85,8 @@ source .venv/bin/activate
 
 UCAGENT_CMDLINE_START_MCP=1 \
 UC_ENV_CMD_BACKEND_EX_ARGS="-m gpt-5.4-mini --ephemeral" \
-ucagent /Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache Cache \
-  --config /Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/configs/ucagent_track1_cache.yaml \
+ucagent /Users/zzy/Workspace/ucagent Cache \
+  --config /Users/zzy/Workspace/ucagent/configs/ucagent_track1_cache.yaml \
   --backend codex \
   --exit-on-completion \
   --mcp-server-no-file-tools \
@@ -111,7 +111,7 @@ Initial audit result:
 Use `--force-stage-index` through the helper script so new work starts from the intended stage instead of rerunning the audit stage.
 
 ```sh
-cd /Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache
+cd /Users/zzy/Workspace/ucagent
 
 # Stage 1: backpressure implementation
 scripts/run_ucagent_stage.sh 1
@@ -180,7 +180,7 @@ UCAgent can expose its verification tools via an MCP (Model Context Protocol) se
 
 ### Start the MCP Server
 
-Run from the `competition/` directory:
+Run from the workspace root:
 
 ```bash
 printf '!import threading, time; threading.Thread(target=lambda: time.sleep(99999999), daemon=False).start()\nc\n' | \
@@ -194,9 +194,9 @@ The keep-alive thread is necessary because the MCP server runs as a daemon threa
 Before first start, ensure the DUT directory exists under the workspace:
 
 ```bash
-mkdir -p competition/Cache
-cp competition/rtl/dut/Cache.v competition/rtl/dut/Cache.yaml competition/rtl/dut/Test.v competition/Cache/
-touch competition/Cache/__init__.py
+mkdir -p Cache
+cp rtl/dut/Cache.v rtl/dut/Cache.yaml rtl/dut/Test.v Cache/
+touch Cache/__init__.py
 ```
 
 ### MCP Client Configuration

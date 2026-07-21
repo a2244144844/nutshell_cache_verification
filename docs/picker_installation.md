@@ -5,15 +5,15 @@ Picker was installed from source following the official flow, with one local com
 ## Install Location
 
 ```text
-competition/track1_nutshell_cache/local/picker
+local/picker
 ```
 
 Useful paths:
 
 ```text
-competition/track1_nutshell_cache/local/picker/bin/picker
-competition/track1_nutshell_cache/local/picker/share/picker/python
-competition/track1_nutshell_cache/tools/picker
+local/picker/bin/picker
+local/picker/share/picker/python
+tools/picker
 ```
 
 ## Environment Setup
@@ -22,7 +22,7 @@ From repository root:
 
 ```bash
 source .venv/bin/activate
-source competition/track1_nutshell_cache/scripts/env.sh
+source scripts/env.sh
 ```
 
 Then verify:
@@ -60,11 +60,11 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter Development.Module)
 Build command:
 
 ```bash
-cd competition/track1_nutshell_cache/tools/picker
+cd tools/picker
 make init
 rm -rf build
 make -j$(sysctl -n hw.ncpu) ARGS="-DPython3_EXECUTABLE=/Users/zzy/Workspace/ucagent/.venv/bin/python"
-make install ARGS="-DCMAKE_INSTALL_PREFIX=/Users/zzy/Workspace/ucagent/competition/track1_nutshell_cache/local/picker -DPython3_EXECUTABLE=/Users/zzy/Workspace/ucagent/.venv/bin/python"
+make install ARGS="-DCMAKE_INSTALL_PREFIX=/Users/zzy/Workspace/ucagent/local/picker -DPython3_EXECUTABLE=/Users/zzy/Workspace/ucagent/.venv/bin/python"
 ```
 
 ## Smoke Test
@@ -75,7 +75,7 @@ The installation was validated with the repository's simple Adder RTL:
 rm -rf /tmp/picker_adder_smoke
 mkdir -p /tmp/picker_adder_smoke
 source .venv/bin/activate
-source competition/track1_nutshell_cache/scripts/env.sh
+source scripts/env.sh
 
 picker export examples/Adder/Adder.v \
   --rw 1 \

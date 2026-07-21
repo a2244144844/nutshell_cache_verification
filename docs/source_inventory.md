@@ -74,9 +74,9 @@ Checked on 2026-05-25:
 | toffee-test | Available | Python package `toffee-test` is installed. |
 | pytest | Available | Python package import succeeds. |
 | Verilator | Available | `/opt/homebrew/bin/verilator`, version `5.046`. |
-| Picker CLI | Available locally | Installed from source at `competition/track1_nutshell_cache/local/picker`; see `docs/picker_installation.md`. |
-| Java runtime | Available locally | Azul Zulu JRE `17.0.19` installed at `competition/track1_nutshell_cache/local/jre17`. |
-| Mill | Available locally | Mill `0.11.7` installed at `competition/track1_nutshell_cache/local/mill/bin/mill`, matching NutShell `.mill-version`. |
+| Picker CLI | Available locally | Installed from source at `local/picker`; see `docs/picker_installation.md`. |
+| Java runtime | Available locally | Azul Zulu JRE `17.0.19` installed at `local/jre17`. |
+| Mill | Available locally | Mill `0.11.7` installed at `local/mill/bin/mill`, matching NutShell `.mill-version`. |
 
 Picker validation:
 
