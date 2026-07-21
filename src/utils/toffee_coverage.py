@@ -380,6 +380,175 @@ class CacheCoverage:
                 }, name=f"pxs_{result}_{state}")
         self.groups.append(g)
 
+        # ═══════════════════════════════════════════════════════════════
+        # Internal Signal Coverage Groups (via DPI export)
+        # ═══════════════════════════════════════════════════════════════
+
+        # ── Internal: FSM state coverage (9 bins) ────────────────────
+        g = fc.CovGroup("cache_internal_fsm_state")
+        fsm_state_names = {
+            0: "idle", 1: "read", 2: "write", 3: "dirty_miss",
+            4: "clean_miss", 5: "mmio_req", 6: "mmio_wait",
+            7: "mmio_resp", 8: "hit",
+        }
+        for state_val, state_name in fsm_state_names.items():
+            g.add_watch_point(d.Cache_s3_state, {
+                state_name: (lambda sv=state_val: lambda p: self._mark(f"fsm_{sv}",
+                    lambda: p.value == sv))(),
+            }, name=f"fsm_{state_name}")
+        self.groups.append(g)
+
+        # ── Internal: refill beat counter terminal count ─────────────
+        g = fc.CovGroup("cache_internal_refill_counter")
+        g.add_watch_point(d.Cache_s3_readBeatCnt_value, {
+            "refill_in_progress": lambda p: self._mark("refill_prog",
+                lambda: 0 < p.value < 7),
+            "refill_complete": lambda p: self._mark("refill_done",
+                lambda: p.value == 7),
+        }, name="refill_cnt")
+        self.groups.append(g)
+
+        # ── Internal: writeback beat counter terminal count ──────────
+        g = fc.CovGroup("cache_internal_wb_counter")
+        g.add_watch_point(d.Cache_s3_writeBeatCnt_value, {
+            "wb_in_progress": lambda p: self._mark("wb_prog",
+                lambda: 0 < p.value < 7),
+            "wb_complete": lambda p: self._mark("wb_done",
+                lambda: p.value == 7),
+        }, name="wb_cnt")
+        self.groups.append(g)
+
+        # ── Internal: sub-FSM state2 coverage (4 bins) ──────────────
+        g = fc.CovGroup("cache_internal_sub_fsm")
+        for s2_val in range(4):
+            g.add_watch_point(d.Cache_s3_state2, {
+                str(s2_val): (lambda sv=s2_val: lambda p: self._mark(f"s2_{sv}",
+                    lambda: p.value == sv))(),
+            }, name=f"s2_{s2_val}")
+        self.groups.append(g)
+
+        # ── Internal: forward path coverage ──────────────────────────
+        g = fc.CovGroup("cache_internal_forward")
+        g.add_watch_point(d.Cache_s2_isForwardMetaReg, {
+            "meta_forward": lambda p: self._mark("fwd_meta",
+                lambda: p.value == 1),
+        }, name="fwd_meta")
+        g.add_watch_point(d.Cache_s2_isForwardDataReg, {
+            "data_forward": lambda p: self._mark("fwd_data",
+                lambda: p.value == 1),
+        }, name="fwd_data")
+        self.groups.append(g)
+
+        # ── Internal: needFlush coverage ─────────────────────────────
+        g = fc.CovGroup("cache_internal_need_flush")
+        g.add_watch_point(d.Cache_s3_needFlush, {
+            "need_flush_asserted": lambda p: self._mark("nf_set",
+                lambda: p.value == 1),
+        }, name="need_flush")
+        self.groups.append(g)
+
+        # ── Internal: probe release counter terminal count ───────────
+        g = fc.CovGroup("cache_internal_probe_counter")
+        g.add_watch_point(d.Cache_s3_releaseLast_c_value, {
+            "probe_release_in_progress": lambda p: self._mark("probe_rel_prog",
+                lambda: 0 < p.value < 7),
+            "probe_release_complete": lambda p: self._mark("probe_rel_done",
+                lambda: p.value == 7),
+        }, name="probe_rel_cnt")
+        self.groups.append(g)
+
+        # ── Internal: CPU response counter terminal count ────────────
+        g = fc.CovGroup("cache_internal_resp_counter")
+        g.add_watch_point(d.Cache_s3_respToL1Last_c_value, {
+            "resp_in_progress": lambda p: self._mark("resp_prog",
+                lambda: 0 < p.value < 7),
+            "resp_complete": lambda p: self._mark("resp_done",
+                lambda: p.value == 7),
+        }, name="resp_cnt")
+        self.groups.append(g)
+
+        # ── Internal: alreadyOutFire / afterFirstRead ────────────────
+        g = fc.CovGroup("cache_internal_pipeline_flags")
+        g.add_watch_point(d.Cache_s3_alreadyOutFire, {
+            "out_fire": lambda p: self._mark("out_fire",
+                lambda: p.value == 1),
+        }, name="already_out_fire")
+        g.add_watch_point(d.Cache_s3_afterFirstRead, {
+            "after_first_read": lambda p: self._mark("after_first",
+                lambda: p.value == 1),
+        }, name="after_first_read")
+        self.groups.append(g)
+
+        # ═══════════════════════════════════════════════════════════════
+        # Phase 2: Additional internal signals (tag compare, replacement,
+        # dirty, probe, arbiter, write-L2 counter)
+        # ═══════════════════════════════════════════════════════════════
+
+        # ── Internal: hitVec — per-way tag comparison result (4 bins) ==
+        g = fc.CovGroup("cache_internal_hit_vec")
+        for way in range(4):
+            g.add_watch_point(d.Cache_s2_hitVec, {
+                f"way_{way}_hit": (lambda w=way: lambda p: self._mark(f"hit_way_{w}",
+                    lambda: (p.value >> w) & 1))(),
+            }, name=f"hit_vec_way_{way}")
+        self.groups.append(g)
+
+        # ── Internal: replacement policy — hasInvalidWay + waymask =====
+        g = fc.CovGroup("cache_internal_replacement")
+        g.add_watch_point(d.Cache_s2_hasInvalidWay, {
+            "prefer_invalid_way": lambda p: self._mark("pref_invalid",
+                lambda: p.value == 1),
+            "must_evict": lambda p: self._mark("must_evict",
+                lambda: p.value == 0),
+        }, name="replacement_policy")
+        # Final waymask: which way is selected (4 bins for 4-way cache)
+        for way in range(4):
+            g.add_watch_point(d.Cache_s2_waymask, {
+                f"way_{way}_selected": (lambda w=way: lambda p: self._mark(f"way_sel_{w}",
+                    lambda: p.value == (1 << w)))(),
+            }, name=f"waymask_way_{way}")
+        self.groups.append(g)
+
+        # ── Internal: meta_dirty — victim dirty decision (2 bins) =====
+        g = fc.CovGroup("cache_internal_dirty_flag")
+        g.add_watch_point(d.Cache_s3_meta_dirty, {
+            "victim_clean": lambda p: self._mark("victim_clean",
+                lambda: p.value == 0),
+            "victim_dirty": lambda p: self._mark("victim_dirty",
+                lambda: p.value == 1),
+        }, name="meta_dirty")
+        self.groups.append(g)
+
+        # ── Internal: probe — internal probe command detection =========
+        g = fc.CovGroup("cache_internal_probe")
+        g.add_watch_point(d.Cache_s3_probe, {
+            "probe_requested": lambda p: self._mark("probe_req",
+                lambda: p.value == 1),
+        }, name="probe_detect")
+        self.groups.append(g)
+
+        # ── Internal: writeL2BeatCnt — write-to-L2 beat counter =========
+        g = fc.CovGroup("cache_internal_write_l2_counter")
+        g.add_watch_point(d.Cache_s3_writeL2BeatCnt_value, {
+            "write_l2_in_progress": lambda p: self._mark("wl2_prog",
+                lambda: 0 < p.value < 7),
+            "write_l2_complete": lambda p: self._mark("wl2_done",
+                lambda: p.value == 7),
+        }, name="write_l2_cnt")
+        self.groups.append(g)
+
+        # ── Internal: arbiter — meta write arbiter conflict detection ==
+        g = fc.CovGroup("cache_internal_arbiter")
+        g.add_watch_point(d.Cache_s3_metaWriteArb_io_in_0_valid, {
+            "hit_write_request": lambda p: self._mark("hit_wr",
+                lambda: p.value == 1),
+        }, name="meta_arb_0")
+        g.add_watch_point(d.Cache_s3_metaWriteArb_io_in_1_valid, {
+            "refill_write_request": lambda p: self._mark("refill_wr",
+                lambda: p.value == 1),
+        }, name="meta_arb_1")
+        self.groups.append(g)
+
         # ── Hook sampling ────────────────────────────────────────────
         if step_ris:
             d.StepRis(lambda _: [g.sample() for g in self.groups])

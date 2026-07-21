@@ -1,0 +1,46 @@
+# Internal signal export configuration for NutShell Cache DUT
+# Used with `picker export --internal=configs/internal.yaml`
+#
+# Format:
+#   <InstancePath>:
+#     - "reg <width> <signal_name>"
+#     - "wire <width> <signal_name>"
+#
+# NOTE: The YAML key is the INSTANCE path from the top-level DUT module,
+#       NOT the Verilog module name.
+#       e.g. CacheStage3 is instantiated as "s3" inside "Cache",
+#       so the path is "Cache.s3".
+
+Cache:
+  s3:
+    # ── Main FSM & Counters ──────────────────────────────────────
+    - "reg [3:0] state"
+    - "reg  needFlush"
+    - "reg [2:0] readBeatCnt_value"
+    - "reg [2:0] writeBeatCnt_value"
+    - "reg [2:0] writeL2BeatCnt_value"
+    # ── Sub FSM & Pipeline Flags ─────────────────────────────────
+    - "reg [1:0] state2"
+    - "reg  alreadyOutFire"
+    - "reg  afterFirstRead"
+    # ── Data Path ────────────────────────────────────────────────
+    - "reg [63:0] dataWay_0_data"
+    - "reg [63:0] inRdataRegDemand"
+    - "reg [2:0] releaseLast_c_value"
+    - "reg [2:0] respToL1Last_c_value"
+    # ── Dirty Decision & Probe ──────────────────────────────────
+    - "wire  meta_dirty"
+    - "wire  probe"
+    # ── Arbiter Conflict Detection ──────────────────────────────
+    - "wire  metaWriteArb_io_in_0_valid"
+    - "wire  metaWriteArb_io_in_1_valid"
+  s2:
+    # ── Forward Path ─────────────────────────────────────────────
+    - "reg  isForwardMetaReg"
+    - "reg  isForwardDataReg"
+    - "reg [63:0] victimWaymask_lfsr"
+    # ── Tag Comparison Result ────────────────────────────────────
+    - "wire [3:0] hitVec"
+    # ── Replacement Policy ───────────────────────────────────────
+    - "wire  hasInvalidWay"
+    - "wire [3:0] waymask"

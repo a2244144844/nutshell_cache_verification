@@ -22,4 +22,5 @@ picker export "$ROOT_DIR/rtl/dut/Cache.v" \
   --sim verilator \
   --tdir "$OUT_DIR" \
   --autobuild true \
+  --internal="$ROOT_DIR/configs/internal.yaml" \
   -c
